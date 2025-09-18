@@ -27,6 +27,52 @@ import toast from 'react-hot-toast';
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: 'New Event Added',
+      message: 'Morning Prayer Session has been scheduled for tomorrow',
+      time: '2 hours ago',
+      type: 'event',
+      read: false,
+      target: '/events',
+      specificItem: 'morning-prayer-session',
+      scrollToId: 'morning-prayer-session-event'
+    },
+    {
+      id: 2,
+      title: 'Ladies Night Event',
+      message: 'New photos from Ladies Night event are now available',
+      time: '1 day ago',
+      type: 'event',
+      read: false,
+      target: '/events',
+      specificItem: 'ladies-night',
+      scrollToId: 'ladies-night-highlight'
+    },
+    {
+      id: 3,
+      title: 'New Podcast Episode',
+      message: 'New episode "Walking in Faith" is now available',
+      time: '3 hours ago',
+      type: 'podcast',
+      read: false,
+      target: '/podcasts',
+      specificItem: 'walking-in-faith',
+      scrollToId: 'walking-in-faith-podcast'
+    },
+    {
+      id: 4,
+      title: 'Relationship Devotional',
+      message: 'New relationship devotional "Walking in Faith" is available',
+      time: '2 days ago',
+      type: 'devotional',
+      read: true,
+      target: '/devotionals',
+      specificItem: 'walking-in-faith-devotional',
+      scrollToId: 'walking-in-faith-devotional'
+    }
+  ]);
   const flyingHeartRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -61,29 +107,6 @@ const Layout = ({ children }) => {
   };
 
   // Mock notifications data
-  const notifications = [
-    {
-      id: 1,
-      title: 'New Event Added',
-      message: 'Youth Bible Study has been scheduled for tomorrow',
-      time: '2 hours ago',
-      type: 'event',
-      read: false,
-      target: '/events'
-    },
-
-
-    {
-      id: 4,
-      title: 'Relationship Devotional',
-      message: 'New relationship devotional "Walking in Faith" is available',
-      time: '2 days ago',
-      type: 'devotional',
-      read: true,
-      target: '/devotionals'
-    }
-  ];
-
   const unreadCount = notifications.filter(n => !n.read).length;
 
   // Use authenticated user from context
@@ -127,12 +150,12 @@ const Layout = ({ children }) => {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between h-20 lg:h-28 xl:h-32 px-4 lg:px-8 xl:px-10 border-b border-gray-200">
-          <div className="flex items-center space-x-3 lg:space-x-4 xl:space-x-5 min-w-0">
+          <Link to="/" className="flex items-center space-x-3 lg:space-x-4 xl:space-x-5 min-w-0 hover:opacity-80 transition-opacity duration-200">
             <div className="w-12 h-12 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-md flex-shrink-0">
               <span className="text-white font-bold text-lg lg:text-2xl xl:text-3xl">FOG</span>
             </div>
             <h1 className="text-base lg:text-xl xl:text-2xl 2xl:text-3xl font-bold text-gray-900 truncate whitespace-nowrap">FOG</h1>
-          </div>
+          </Link>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
@@ -262,22 +285,59 @@ const Layout = ({ children }) => {
                         notifications.map((notification) => (
                           <div 
                             key={notification.id} 
-                            className={`p-4 lg:p-6 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
+                            className={`p-4 lg:p-6 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-all duration-200 ${
                               !notification.read ? 'bg-blue-50' : ''
                             }`}
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              
+                              console.log('Notification clicked:', notification.title, 'Target:', notification.target, 'ScrollTo:', notification.scrollToId);
+                              
                               // Navigate to the relevant area
                               if (notification.target) {
-                                navigate(notification.target);
+                                // Mark as read when clicked
+                                if (!notification.read) {
+                                  setNotifications(prevNotifications => 
+                                    prevNotifications.map(n => 
+                                      n.id === notification.id ? { ...n, read: true } : n
+                                    )
+                                  );
+                                }
+                                
+                                // Close dropdown first
+                                setNotificationsOpen(false);
+                                
+                                // Navigate after dropdown closes
+                                setTimeout(() => {
+                                  navigate(notification.target);
+                                  
+                                  // Scroll to specific item if it exists
+                                  if (notification.scrollToId) {
+                                    setTimeout(() => {
+                                      const element = document.getElementById(notification.scrollToId);
+                                      if (element) {
+                                        element.scrollIntoView({ 
+                                          behavior: 'smooth',
+                                          block: 'center'
+                                        });
+                                        // Highlight the element briefly
+                                        element.style.transition = 'background-color 0.3s ease';
+                                        element.style.backgroundColor = '#dbeafe';
+                                        setTimeout(() => {
+                                          element.style.backgroundColor = '';
+                                        }, 2000);
+                                      }
+                                    }, 300);
+                                  }
+                                }, 150);
                               }
-                              setNotificationsOpen(false);
                             }}
                           >
                             <div className="flex items-start space-x-3 lg:space-x-4">
                               <div className={`w-2 h-2 lg:w-3 lg:h-3 rounded-full mt-2 flex-shrink-0 ${
                                 notification.type === 'event' ? 'bg-blue-500' :
                                 notification.type === 'prayer' ? 'bg-green-500' :
-                
                                 'bg-yellow-500'
                               }`}></div>
                               <div className="flex-1 min-w-0">
@@ -292,6 +352,11 @@ const Layout = ({ children }) => {
                                 <p className="text-xs lg:text-sm text-gray-400 mt-2 lg:mt-3">
                                   {notification.time}
                                 </p>
+                                {notification.type === 'event' && (
+                                  <p className="text-xs lg:text-sm text-blue-600 mt-1 font-medium">
+                                    Click to view event details →
+                                  </p>
+                                )}
                               </div>
                               {!notification.read && (
                                 <div className="w-2 h-2 lg:w-3 lg:h-3 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
@@ -305,9 +370,13 @@ const Layout = ({ children }) => {
                     {notifications.length > 0 && (
                       <div className="p-4 lg:p-6 border-t border-gray-200">
                         <button 
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             // Mark all as read functionality
-                            console.log('Mark all as read');
+                            setNotifications(prevNotifications => 
+                              prevNotifications.map(n => ({ ...n, read: true }))
+                            );
                             setNotificationsOpen(false);
                           }}
                           className="w-full text-sm lg:text-base text-primary-600 hover:text-primary-700 font-medium"

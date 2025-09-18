@@ -379,12 +379,24 @@ const Podcasts = () => {
             {categories.filter(cat => cat.id !== 'all').map((category) => (
               <div 
                 key={category.id} 
-                className={`rounded-xl p-4 shadow-sm border transition-all duration-200 cursor-pointer ${
+                className={`rounded-xl p-4 shadow-sm border transition-all duration-200 cursor-pointer hover:scale-105 ${
                   filterCategory === category.id 
                     ? 'bg-primary-50 border-primary-300 shadow-md' 
                     : 'bg-white border-gray-200 hover:shadow-md'
                 }`}
-                onClick={() => setFilterCategory(category.id)}
+                onClick={() => {
+                  setFilterCategory(category.id);
+                  // Scroll to podcasts section after a short delay
+                  setTimeout(() => {
+                    const podcastsSection = document.getElementById('podcasts-section');
+                    if (podcastsSection) {
+                      podcastsSection.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                      });
+                    }
+                  }, 100);
+                }}
               >
                 <div className="text-center">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
@@ -488,7 +500,7 @@ const Podcasts = () => {
         </div>
 
         {/* Podcasts Grid */}
-        <div className="mb-8">
+        <div id="podcasts-section" className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">All Podcasts</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredPodcasts.filter(podcast => !podcast.isLive).map((podcast) => (

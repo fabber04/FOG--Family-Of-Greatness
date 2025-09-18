@@ -25,52 +25,102 @@ const Members = () => {
   const members = [
     {
       id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '+1 (555) 123-4567',
+      name: 'Ngabhez Simbilimbi',
+      email: 'tafadzwa.moyo@fog.org.zw',
+      phone: '+263 77 123 4567',
       joinDate: '2024-01-15',
       status: 'Active',
-      location: 'New York, NY',
-      role: 'Member'
+      location: 'Harare Central',
+      role: 'Pastor'
     },
     {
       id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      phone: '+1 (555) 234-5678',
+      name: 'Tinashe Chiwenga',
+      email: 'tinashe.chiwenga@fog.org.zw',
+      phone: '+263 77 234 5678',
       joinDate: '2024-01-14',
       status: 'Active',
-      location: 'Los Angeles, CA',
-      role: 'Member'
+      location: 'Bulawayo',
+      role: 'Youth Leader'
     },
     {
       id: 3,
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      phone: '+1 (555) 345-6789',
+      name: 'Rutendo Mupfumira',
+      email: 'rutendo.mupfumira@fog.org.zw',
+      phone: '+263 77 345 6789',
       joinDate: '2024-01-13',
-      status: 'Pending',
-      location: 'Chicago, IL',
-      role: 'Member'
+      status: 'Active',
+      location: 'Chitungwiza',
+      role: 'Youth Leader'
     },
     {
       id: 4,
-      name: 'Sarah Wilson',
-      email: 'sarah@example.com',
-      phone: '+1 (555) 456-7890',
+      name: 'Farai Ndlovu',
+      email: 'farai.ndlovu@fog.org.zw',
+      phone: '+263 77 456 7890',
       joinDate: '2024-01-12',
       status: 'Active',
-      location: 'Houston, TX',
-      role: 'Member'
+      location: 'Mutare',
+      role: 'Pastor'
     },
     {
       id: 5,
-      name: 'David Brown',
-      email: 'david@example.com',
-      phone: '+1 (555) 567-8901',
+      name: 'Tendai Marufu',
+      email: 'tendai.marufu@fog.org.zw',
+      phone: '+263 77 567 8901',
       joinDate: '2024-01-11',
-      status: 'Inactive',
-      location: 'Phoenix, AZ',
+      status: 'Active',
+      location: 'Gweru',
+      role: 'Member'
+    },
+    {
+      id: 6,
+      name: 'Blessing Chitepo',
+      email: 'blessing.chitepo@fog.org.zw',
+      phone: '+263 77 678 9012',
+      joinDate: '2024-01-10',
+      status: 'Active',
+      location: 'Kwekwe',
+      role: 'Member'
+    },
+    {
+      id: 7,
+      name: 'Precious Muzenda',
+      email: 'precious.muzenda@fog.org.zw',
+      phone: '+263 77 789 0123',
+      joinDate: '2024-01-09',
+      status: 'Pending',
+      location: 'Masvingo',
+      role: 'Member'
+    },
+    {
+      id: 8,
+      name: 'Kudzai Makoni',
+      email: 'kudzai.makoni@fog.org.zw',
+      phone: '+263 77 890 1234',
+      joinDate: '2024-01-08',
+      status: 'Active',
+      location: 'Marondera',
+      role: 'Member'
+    },
+    {
+      id: 9,
+      name: 'Memory Chigumba',
+      email: 'memory.chigumba@fog.org.zw',
+      phone: '+263 77 901 2345',
+      joinDate: '2024-01-07',
+      status: 'Active',
+      location: 'Bindura',
+      role: 'Member'
+    },
+    {
+      id: 10,
+      name: 'Tatenda Mhizha',
+      email: 'tatenda.mhizha@fog.org.zw',
+      phone: '+263 77 012 3456',
+      joinDate: '2024-01-06',
+      status: 'Active',
+      location: 'Chegutu',
       role: 'Member'
     }
   ];
@@ -158,8 +208,8 @@ const Members = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Member Management</h1>
-          <p className="mt-2 text-gray-600">Manage your FOG community members</p>
+          <h1 className="text-3xl font-bold text-gray-900">FOG Community Members</h1>
+          <p className="mt-2 text-gray-600">Manage our growing FOG family across Zimbabwe - from Harare to Bulawayo, Chitungwiza to Mutare</p>
         </div>
 
         {/* Actions Bar */}
