@@ -79,7 +79,7 @@ const Dashboard = () => {
       {/* Enhanced Hero Section */}
       <div className="gradient-bg rounded-3xl lg:rounded-[2rem] xl:rounded-[2.5rem] p-6 lg:p-10 xl:p-12 2xl:p-16 text-white text-center hover-lift glow-primary relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <img src="/images/events/IMG-20250825-WA0070.jpg" alt="FOG Community" className="w-full h-full object-cover" />
+          <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0070.jpg" alt="FOG Community" className="w-full h-full object-cover" />
         </div>
         <div className="relative z-10">
           <h1 className="text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold mb-4 text-shadow">
@@ -154,7 +154,7 @@ const Dashboard = () => {
           {/* Morning Prayer Sessions */}
           <div className="text-center p-6 bg-blue-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/images/events/IMG-20250825-WA0070.jpg" alt="Prayer Room" className="w-full h-full object-cover" />
+                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0070.jpg" alt="Prayer Room" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Morning Prayer Sessions</h3>
             <p className="text-gray-600">Daily at 4:00 AM</p>
@@ -164,7 +164,7 @@ const Dashboard = () => {
           {/* Weekly Service */}
           <div className="text-center p-6 bg-purple-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/images/events/IMG-20250825-WA0064.jpg" alt="Main Hall" className="w-full h-full object-cover" />
+                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0064.jpg" alt="Main Hall" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Weekly Service</h3>
             <p className="text-gray-600">Every Sunday at 9:00 AM</p>
@@ -174,7 +174,7 @@ const Dashboard = () => {
           {/* Relationship Thursday */}
           <div className="text-center p-6 bg-pink-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/images/events/IMG-20250825-WA0062.jpg" alt="Community Center" className="w-full h-full object-cover" />
+                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0062.jpg" alt="Community Center" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Relationship Thursday</h3>
             <p className="text-gray-600">Every Thursday at 7:00 PM</p>
@@ -184,7 +184,7 @@ const Dashboard = () => {
           {/* Empowerment Nights */}
           <div className="text-center p-6 bg-orange-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/images/events/IMG-20250825-WA0065.jpg" alt="Conference Room" className="w-full h-full object-cover" />
+                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0065.jpg" alt="Conference Room" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Empowerment Nights</h3>
             <p className="text-gray-600">Monthly at 6:30 PM</p>
@@ -194,7 +194,7 @@ const Dashboard = () => {
           {/* Social Dinner */}
           <div className="text-center p-6 bg-green-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/images/events/IMG-20250825-WA0063.jpg" alt="Dining Hall" className="w-full h-full object-cover" />
+                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0063.jpg" alt="Dining Hall" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Social Dinner</h3>
             <p className="text-gray-600">Quarterly at 7:00 PM</p>
@@ -204,7 +204,7 @@ const Dashboard = () => {
           {/* Wisdom Class */}
           <div className="text-center p-6 bg-indigo-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/images/events/IMG-20250825-WA0061.jpg" alt="Learning Center" className="w-full h-full object-cover" />
+                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0061.jpg" alt="Learning Center" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Wisdom Class</h3>
             <p className="text-gray-600">Ongoing at 4:00 PM</p>

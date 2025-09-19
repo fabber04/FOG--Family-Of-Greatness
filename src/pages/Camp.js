@@ -40,7 +40,7 @@ import toast from 'react-hot-toast';
        photos: [
          {
            id: 1,
-           src: "/images/camp/2024/IMG-20250819-WA0002.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0002.jpg",
            alt: "Youth camp moment 1",
            caption: "Amazing worship time under the stars",
            date: "2024-12-15",
@@ -53,7 +53,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 2,
-           src: "/images/camp/2024/IMG-20250819-WA0004.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0004.jpg",
            alt: "Youth camp moment 2",
            caption: "Building strong bonds through teamwork",
            date: "2024-12-14",
@@ -65,7 +65,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 3,
-           src: "/images/camp/2024/IMG-20250819-WA0005.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0005.jpg",
            alt: "Youth camp moment 3",
            caption: "Late night stories and testimonies around the fire",
            date: "2024-12-13",
@@ -77,7 +77,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 4,
-           src: "/images/camp/2024/IMG-20250819-WA0006.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0006.jpg",
            alt: "Youth camp moment 4",
            caption: "Studying God's word in His beautiful creation",
            date: "2024-12-12",
@@ -87,7 +87,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 5,
-           src: "/images/camp/2024/IMG-20250819-WA0007.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0007.jpg",
            alt: "Youth camp moment 5",
            caption: "Pushing our limits and trusting God",
            date: "2024-12-11",
@@ -99,7 +99,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 6,
-           src: "/images/camp/2024/IMG-20250819-WA0008.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0008.jpg",
            alt: "Youth camp moment 6",
            caption: "Creating unforgettable memories together",
            date: "2024-12-10",
@@ -111,7 +111,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 7,
-           src: "/images/camp/2024/IMG-20250819-WA0009.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0009.jpg",
            alt: "Youth camp moment 7",
            caption: "Friendship and fellowship in action",
            date: "2024-12-09",
@@ -123,7 +123,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 8,
-           src: "/images/camp/2024/IMG-20250819-WA0010.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0010.jpg",
            alt: "Youth camp moment 8",
            caption: "Spiritual growth and transformation",
            date: "2024-12-08",
@@ -135,7 +135,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 9,
-           src: "/images/camp/2024/IMG-20250819-WA0011.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0011.jpg",
            alt: "Youth camp moment 9",
            caption: "Celebrating our faith journey",
            date: "2024-12-07",
@@ -147,7 +147,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 10,
-           src: "/images/camp/2024/IMG-20250819-WA0120.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2024/IMG-20250819-WA0120.jpg",
            alt: "Youth camp moment 10",
            caption: "Final day blessings and goodbyes",
            date: "2024-12-06",
@@ -206,7 +206,7 @@ import toast from 'react-hot-toast';
        photos: [
          {
            id: 101,
-           src: "/images/camp/2023/IMG-20250819-WA0132.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0132.jpg",
            alt: "2023 Youth camp moment 1",
            caption: "Connecting with nature",
            date: "2023-12-12",
@@ -218,7 +218,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 102,
-           src: "/images/camp/2023/IMG-20250819-WA0133.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0133.jpg",
            alt: "2023 Youth camp moment 2",
            caption: "Team building challenges",
            date: "2023-12-11",
@@ -230,7 +230,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 103,
-           src: "/images/camp/2023/IMG-20250819-WA0134.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0134.jpg",
            alt: "2023 Youth camp moment 3",
            caption: "Brotherhood ",
            date: "2023-12-10",
@@ -240,7 +240,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 104,
-           src: "/images/camp/2023/IMG-20250819-WA0135.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0135.jpg",
            alt: "2023 Youth camp moment 4",
            caption: "Adventure activities",
            date: "2023-12-09",
@@ -252,7 +252,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 105,
-           src: "/images/camp/2023/IMG-20250819-WA0136.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0136.jpg",
            alt: "2023 Youth camp moment 5",
            caption: "Friendship circle",
            date: "2023-12-08",
@@ -262,7 +262,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 106,
-           src: "/images/camp/2023/IMG-20250819-WA0137.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0137.jpg",
            alt: "2023 Youth camp moment 6",
            caption: "Campfire stories and testimonies",
            date: "2023-12-07",
@@ -274,7 +274,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 107,
-           src: "/images/camp/2023/IMG-20250819-WA0138.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0138.jpg",
            alt: "2023 Youth camp moment 7",
            caption: "Morning devotionals in the wilderness",
            date: "2023-12-06",
@@ -286,7 +286,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 108,
-           src: "/images/camp/2023/IMG-20250819-WA0139.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0139.jpg",
            alt: "2023 Youth camp moment 8",
            caption: "Outdoor cooking and survival skills",
            date: "2023-12-05",
@@ -298,7 +298,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 109,
-           src: "/images/camp/2023/IMG-20250819-WA0140.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0140.jpg",
            alt: "2023 Youth camp moment 9",
            caption: "Group games and competitions",
            date: "2023-12-04",
@@ -310,7 +310,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 110,
-           src: "/images/camp/2023/IMG-20250819-WA0141.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0141.jpg",
            alt: "2023 Youth camp moment 10",
            caption: "Nature walks and exploration",
            date: "2023-12-03",
@@ -322,7 +322,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 111,
-           src: "/images/camp/2023/IMG-20250819-WA0142.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0142.jpg",
            alt: "2023 Youth camp moment 11",
            caption: "Evening worship under the stars",
            date: "2023-12-02",
@@ -334,7 +334,7 @@ import toast from 'react-hot-toast';
          },
          {
            id: 112,
-           src: "/images/camp/2023/IMG-20250819-WA0143.jpg",
+           src: "/FOG--Family-Of-Greatness/images/camp/2023/IMG-20250819-WA0143.jpg",
            alt: "2023 Youth camp moment 12",
            caption: "Final day group photo and memories",
            date: "2023-12-01",
