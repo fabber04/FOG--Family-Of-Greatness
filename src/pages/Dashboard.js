@@ -83,7 +83,7 @@ const Dashboard = () => {
         </div>
         <div className="relative z-10">
           <h1 className="text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold mb-4 text-shadow">
-            WELCOME TO FOG
+            WELCOME TO FAMILY OF GREATNESS
           </h1>
           <p className="text-white/90 text-sm lg:text-lg xl:text-xl 2xl:text-2xl mb-6 max-w-4xl mx-auto">
             JOIN US IN A JOURNEY OF FAITH, FELLOWSHIP, AND SPIRITUAL GROWTH ACROSS ZIMBABWE. FROM HARARE TO BULAWAYO, CHITUNGWIZA TO MUTARE, EXPERIENCE THE POWER OF GOD'S LOVE IN OUR COMMUNITIES.
