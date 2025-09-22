@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/FOG--Family-Of-Greatness/static/css/main.ea30fef3.css",
-    "main.js": "/FOG--Family-Of-Greatness/static/js/main.25501b4f.js",
+    "main.css": "/FOG--Family-Of-Greatness/static/css/main.de0361f1.css",
+    "main.js": "/FOG--Family-Of-Greatness/static/js/main.d9898319.js",
     "index.html": "/FOG--Family-Of-Greatness/index.html",
-    "main.ea30fef3.css.map": "/FOG--Family-Of-Greatness/static/css/main.ea30fef3.css.map",
-    "main.25501b4f.js.map": "/FOG--Family-Of-Greatness/static/js/main.25501b4f.js.map"
+    "main.de0361f1.css.map": "/FOG--Family-Of-Greatness/static/css/main.de0361f1.css.map",
+    "main.d9898319.js.map": "/FOG--Family-Of-Greatness/static/js/main.d9898319.js.map"
   },
   "entrypoints": [
-    "static/css/main.ea30fef3.css",
-    "static/js/main.25501b4f.js"
+    "static/css/main.de0361f1.css",
+    "static/js/main.d9898319.js"
   ]
 }
