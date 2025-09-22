@@ -106,7 +106,7 @@ const Dashboard = () => {
           <p className="text-gray-600 text-lg">Explore our ministries and resources</p>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4 lg:gap-6 xl:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 lg:gap-6 xl:gap-8 justify-items-center">
           {quickActions.map((action) => (
             action.href ? (
               <Link
