@@ -77,11 +77,11 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 lg:space-y-10 xl:space-y-12 2xl:space-y-16">
       {/* Enhanced Hero Section */}
-      <div className="gradient-bg rounded-3xl lg:rounded-[2rem] xl:rounded-[2.5rem] p-6 lg:p-10 xl:p-12 2xl:p-16 text-white text-center hover-lift glow-primary relative overflow-hidden min-h-[250px] lg:min-h-[300px] xl:min-h-[350px]">
+      <div className="gradient-bg rounded-3xl lg:rounded-[2rem] xl:rounded-[2.5rem] p-6 lg:p-10 xl:p-12 2xl:p-16 text-white text-center hover-lift glow-primary relative overflow-hidden min-h-[220px] lg:min-h-[270px] xl:min-h-[320px]">
         <div className="absolute inset-0 opacity-20">
           <img src="/FOG--Family-Of-Greatness/images/meet%20our%20mentor.jpeg" alt="Meet Our Mentor" className="w-full h-full object-cover" />
         </div>
-        <div className="relative z-10 flex flex-col justify-center h-full min-h-[250px] lg:min-h-[300px] xl:min-h-[350px]">
+        <div className="relative z-10 flex flex-col justify-center h-full min-h-[220px] lg:min-h-[270px] xl:min-h-[320px]">
           <h1 className="text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold mb-4 text-shadow">
             WELCOME TO FAMILY OF GREATNESS
           </h1>
