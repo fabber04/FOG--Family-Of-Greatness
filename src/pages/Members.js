@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { 
   Users, 
@@ -12,118 +12,64 @@ import {
   Mail,
   Phone,
   Calendar,
-  MapPin
+  MapPin,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
+import { memberService } from '../services/apiService';
+import toast from 'react-hot-toast';
 
 const Members = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
+    username: '',
+    password: '',
+    phone: '',
+    location: '',
+    role: 'Member'
+  });
 
-  // Mock members data
-  const members = [
-    {
-      id: 1,
-      name: 'Ngabhez Simbilimbi',
-      email: 'tafadzwa.moyo@fog.org.zw',
-      phone: '+263 77 123 4567',
-      joinDate: '2024-01-15',
-      status: 'Active',
-      location: 'Harare Central',
-      role: 'Pastor'
-    },
-    {
-      id: 2,
-      name: 'Tinashe Chiwenga',
-      email: 'tinashe.chiwenga@fog.org.zw',
-      phone: '+263 77 234 5678',
-      joinDate: '2024-01-14',
-      status: 'Active',
-      location: 'Bulawayo',
-      role: 'Youth Leader'
-    },
-    {
-      id: 3,
-      name: 'Rutendo Mupfumira',
-      email: 'rutendo.mupfumira@fog.org.zw',
-      phone: '+263 77 345 6789',
-      joinDate: '2024-01-13',
-      status: 'Active',
-      location: 'Chitungwiza',
-      role: 'Youth Leader'
-    },
-    {
-      id: 4,
-      name: 'Farai Ndlovu',
-      email: 'farai.ndlovu@fog.org.zw',
-      phone: '+263 77 456 7890',
-      joinDate: '2024-01-12',
-      status: 'Active',
-      location: 'Mutare',
-      role: 'Pastor'
-    },
-    {
-      id: 5,
-      name: 'Tendai Marufu',
-      email: 'tendai.marufu@fog.org.zw',
-      phone: '+263 77 567 8901',
-      joinDate: '2024-01-11',
-      status: 'Active',
-      location: 'Gweru',
-      role: 'Member'
-    },
-    {
-      id: 6,
-      name: 'Blessing Chitepo',
-      email: 'blessing.chitepo@fog.org.zw',
-      phone: '+263 77 678 9012',
-      joinDate: '2024-01-10',
-      status: 'Active',
-      location: 'Kwekwe',
-      role: 'Member'
-    },
-    {
-      id: 7,
-      name: 'Precious Muzenda',
-      email: 'precious.muzenda@fog.org.zw',
-      phone: '+263 77 789 0123',
-      joinDate: '2024-01-09',
-      status: 'Pending',
-      location: 'Masvingo',
-      role: 'Member'
-    },
-    {
-      id: 8,
-      name: 'Kudzai Makoni',
-      email: 'kudzai.makoni@fog.org.zw',
-      phone: '+263 77 890 1234',
-      joinDate: '2024-01-08',
-      status: 'Active',
-      location: 'Marondera',
-      role: 'Member'
-    },
-    {
-      id: 9,
-      name: 'Memory Chigumba',
-      email: 'memory.chigumba@fog.org.zw',
-      phone: '+263 77 901 2345',
-      joinDate: '2024-01-07',
-      status: 'Active',
-      location: 'Bindura',
-      role: 'Member'
-    },
-    {
-      id: 10,
-      name: 'Tatenda Mhizha',
-      email: 'tatenda.mhizha@fog.org.zw',
-      phone: '+263 77 012 3456',
-      joinDate: '2024-01-06',
-      status: 'Active',
-      location: 'Chegutu',
-      role: 'Member'
+  // Load members from API
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  const loadMembers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await memberService.getMembers(0, 100);
+      // Map backend data to frontend format
+      const mappedMembers = data.map(user => ({
+        id: user.id,
+        name: user.full_name,
+        email: user.email,
+        username: user.username,
+        phone: user.phone || 'Not provided',
+        joinDate: new Date(user.created_at).toLocaleDateString('en-GB'),
+        status: user.is_active ? 'Active' : 'Inactive',
+        location: user.location || 'Not specified',
+        role: user.is_admin ? 'Admin' : (user.role || 'Member'),
+        is_admin: user.is_admin,
+        is_active: user.is_active
+      }));
+      setMembers(mappedMembers);
+    } catch (error) {
+      console.error('Error loading members:', error);
+      setError('Failed to load members. Please check your connection.');
+      toast.error('Failed to load members from API');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -183,24 +129,108 @@ const Members = () => {
     }
   };
 
-  const handleAddMember = (e) => {
+  const handleAddMember = async (e) => {
     e.preventDefault();
-    // Mock add member functionality
-    alert('Member added successfully!');
-    setShowAddForm(false);
+    try {
+      // Create member via backend API
+      const memberData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        username: formData.username || formData.email.split('@')[0],
+        password: formData.password || 'TempPassword123!', // In production, generate secure password
+        is_admin: formData.role === 'Admin',
+        is_active: true
+      };
+
+      await memberService.createMember(memberData);
+      toast.success('Member added successfully!');
+      setShowAddForm(false);
+      setFormData({
+        full_name: '',
+        email: '',
+        username: '',
+        password: '',
+        phone: '',
+        location: '',
+        role: 'Member'
+      });
+      // Reload members
+      loadMembers();
+    } catch (error) {
+      console.error('Error adding member:', error);
+      toast.error(error.message || 'Failed to add member');
+    }
   };
 
   const handleEditMember = (member) => {
     setSelectedMember(member);
-    // Mock edit functionality
-    alert(`Editing member: ${member.name}`);
+    setFormData({
+      full_name: member.name,
+      email: member.email,
+      username: member.username || '',
+      password: '',
+      phone: member.phone || '',
+      location: member.location || '',
+      role: member.role
+    });
+    setShowAddForm(true);
   };
 
-  const handleDeleteMember = (memberId) => {
-    if (window.confirm('Are you sure you want to delete this member?')) {
-      // Mock delete functionality
-      alert('Member deleted successfully!');
+  const handleUpdateMember = async (e) => {
+    e.preventDefault();
+    if (!selectedMember) return;
+
+    try {
+      const updateData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        username: formData.username || formData.email.split('@')[0],
+        is_admin: formData.role === 'Admin',
+        is_active: formData.role !== 'Inactive'
+      };
+
+      await memberService.updateMember(selectedMember.id, updateData);
+      toast.success('Member updated successfully!');
+      setShowAddForm(false);
+      setSelectedMember(null);
+      setFormData({
+        full_name: '',
+        email: '',
+        username: '',
+        password: '',
+        phone: '',
+        location: '',
+        role: 'Member'
+      });
+      // Reload members
+      loadMembers();
+    } catch (error) {
+      console.error('Error updating member:', error);
+      toast.error(error.message || 'Failed to update member');
     }
+  };
+
+  const handleDeleteMember = async (memberId) => {
+    if (!window.confirm('Are you sure you want to delete this member? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await memberService.deleteMember(memberId);
+      toast.success('Member deleted successfully!');
+      // Reload members
+      loadMembers();
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      toast.error(error.message || 'Failed to delete member. User may have associated data.');
+    }
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   return (
@@ -275,21 +305,40 @@ const Members = () => {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-center">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
+            <span className="text-yellow-800">{error}</span>
+          </div>
+        )}
+
         {/* Members Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredMembers.map((member) => (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-primary-600 animate-spin mr-3" />
+              <span className="text-gray-600">Loading members...</span>
+            </div>
+          ) : filteredMembers.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No members found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredMembers.map((member) => (
                   <tr key={member.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -347,53 +396,99 @@ const Members = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {/* Add Member Form Modal */}
+        {/* Add/Edit Member Form Modal */}
         {showAddForm && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
               <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Member</h3>
-                <form onSubmit={handleAddMember} className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  {selectedMember ? 'Edit Member' : 'Add New Member'}
+                </h3>
+                <form onSubmit={selectedMember ? handleUpdateMember : handleAddMember} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                    <label className="block text-sm font-medium text-gray-700">Full Name *</label>
                     <input
                       type="text"
+                      name="full_name"
+                      value={formData.full_name}
+                      onChange={handleFormChange}
                       required
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <label className="block text-sm font-medium text-gray-700">Email *</label>
                     <input
                       type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleFormChange}
                       required
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <label className="block text-sm font-medium text-gray-700">Username *</label>
                     <input
-                      type="tel"
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleFormChange}
+                      required
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
+                  {!selectedMember && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Password *</label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleFormChange}
+                        required
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Min. 6 characters"
+                      />
+                    </div>
+                  )}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Location</label>
-                    <input
-                      type="text"
+                    <label className="block text-sm font-medium text-gray-700">Role</label>
+                    <select
+                      name="role"
+                      value={formData.role}
+                      onChange={handleFormChange}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    />
+                    >
+                      <option>Member</option>
+                      <option>Admin</option>
+                      <option>Pastor</option>
+                      <option>Youth Leader</option>
+                    </select>
                   </div>
                   <div className="flex justify-end space-x-3 pt-4">
                     <button
                       type="button"
-                      onClick={() => setShowAddForm(false)}
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setSelectedMember(null);
+                        setFormData({
+                          full_name: '',
+                          email: '',
+                          username: '',
+                          password: '',
+                          phone: '',
+                          location: '',
+                          role: 'Member'
+                        });
+                      }}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
                     >
                       Cancel
@@ -402,7 +497,7 @@ const Members = () => {
                       type="submit"
                       className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700"
                     >
-                      Add Member
+                      {selectedMember ? 'Update Member' : 'Add Member'}
                     </button>
                   </div>
                 </form>

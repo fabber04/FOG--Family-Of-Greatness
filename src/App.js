@@ -6,6 +6,7 @@ import { LibraryProvider } from './contexts/LibraryContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './components/Login';
+import Register from './components/Register';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import Library from './pages/Library';
@@ -16,6 +17,8 @@ import Counseling from './pages/Counseling';
 import Devotionals from './pages/Devotionals';
 import PrayerRequests from './pages/PrayerRequests';
 import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminEvents from './pages/admin/AdminEvents';
 import './App.css';
 
 function App() {
@@ -26,6 +29,7 @@ function App() {
           <div className="App">
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout>
@@ -94,6 +98,20 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Profile />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute requireAdmin={true}>
+                <Layout>
+                  <AdminDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/events" element={
+              <ProtectedRoute requireAdmin={true}>
+                <Layout>
+                  <AdminEvents />
                 </Layout>
               </ProtectedRoute>
             } />

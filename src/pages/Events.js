@@ -31,12 +31,12 @@ const Events = () => {
   const events = [
     {
       id: 1,
-      title: 'Morning Prayer Session',
-      description: 'Daily morning prayer to start your day with spiritual focus.',
+      title: 'Prayer Sessions',
+      description: 'Prayer sessions every Monday, Wednesday, Friday. Time: 0400hrs',
       category: 'prayer',
       date: '2024-01-15',
       time: '04:00',
-      location: 'Harare Central Prayer Room',
+      location: '',
       maxAttendees: 50,
       currentAttendees: 23,
       featured: true,
@@ -45,11 +45,11 @@ const Events = () => {
     {
       id: 2,
       title: 'Weekly Service',
-      description: 'Join us every Sunday for our main service.',
+      description: 'Every Wednesday (Online)',
       category: 'service',
       date: '2024-01-21',
       time: '09:00',
-      location: 'Bulawayo Main Hall',
+      location: '',
       maxAttendees: 200,
       currentAttendees: 156,
       featured: true,
@@ -57,12 +57,12 @@ const Events = () => {
     },
     {
       id: 3,
-      title: 'Relationship Thursday',
-      description: 'Weekly relationship-focused devotional.',
+      title: 'Relationship Service',
+      description: 'Every Thursday - 2000Hrs CAT (live on YouTube)',
       category: 'devotional',
       date: '2024-01-18',
-      time: '19:00',
-      location: 'Chitungwiza Community Center',
+      time: '20:00',
+      location: '',
       maxAttendees: 80,
       currentAttendees: 45,
       featured: false,
@@ -222,10 +222,6 @@ const Events = () => {
                       18:00 - 22:00
                     </div>
                     <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      Harare Conference Center
-                    </div>
-                    <div className="flex items-center">
                       <Users className="w-4 h-4 mr-2" />
                       85 attendees
                     </div>
@@ -309,10 +305,6 @@ const Events = () => {
                       {event.time}
                     </div>
                     <div className="flex items-center text-sm text-gray-500">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {event.location}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
                       <Users className="w-4 h-4 mr-2" />
                       {event.currentAttendees}/{event.maxAttendees} attendees
                     </div>
@@ -366,10 +358,6 @@ const Events = () => {
                     <div className="flex items-center">
                       <Clock className="w-3 h-3 mr-1" />
                       {event.time}
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {event.location}
                     </div>
                   </div>
                 </div>

@@ -17,37 +17,98 @@ import {
   LogOut
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 // import { userService } from '../services/firebaseService'; // Temporarily disabled
 
 const Profile = () => {
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('saved');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    name: 'Fabulous Lashid',
-    email: 'fabulouslashid@gmail.com',
-    phone: '0777965100',
-    age: 21,
+    name: '',
+    email: '',
+    phone: '',
+    age: null,
     grade: 'College',
-    joinDate: '2023-09-15',
+    joinDate: new Date().toISOString().split('T')[0],
     avatar: null
   });
 
-  // Load user profile from localStorage for now (temporarily disable Firebase)
+  // Load user profile from currentUser, localStorage, or defaults
   useEffect(() => {
     const loadUserProfile = () => {
+      let profileData = {
+        name: '',
+        email: '',
+        phone: '',
+        age: null,
+        grade: 'College',
+        joinDate: new Date().toISOString().split('T')[0],
+        avatar: null
+      };
+
+      // Priority 1: Use current logged-in user from AuthContext
+      if (currentUser) {
+        profileData = {
+          name: currentUser.name || currentUser.displayName || currentUser.email || '',
+          email: currentUser.email || '',
+          phone: currentUser.phone || '',
+          age: currentUser.age || null,
+          grade: currentUser.grade || 'College',
+          joinDate: currentUser.joinDate || currentUser.createdAt || new Date().toISOString().split('T')[0],
+          avatar: currentUser.avatar || null
+        };
+      }
+
+      // Priority 2: Try localStorage (for saved profile customizations like avatar)
+      // Only use localStorage if it matches the current user
       try {
         const savedProfile = localStorage.getItem('userProfile');
         if (savedProfile) {
-          setUserProfile(JSON.parse(savedProfile));
+          const saved = JSON.parse(savedProfile);
+          // Only merge if it's for the same user (check email match)
+          if (!currentUser || saved.email === currentUser.email) {
+            // Merge saved profile with current user data (saved takes precedence for customizations)
+            profileData = {
+              ...profileData,
+              ...saved,
+              // But always keep current user's email and name if they exist
+              email: currentUser?.email || saved.email || profileData.email,
+              name: currentUser?.name || currentUser?.displayName || saved.name || profileData.name,
+            };
+          } else {
+            // Different user - clear old localStorage data
+            localStorage.removeItem('userProfile');
+          }
         }
       } catch (error) {
-        console.error('Error loading user profile:', error);
+        console.error('Error loading saved profile:', error);
+        // Clear corrupted localStorage data
+        localStorage.removeItem('userProfile');
       }
+
+      // Priority 3: If still no data, use demo defaults only in demo mode
+      if (!profileData.name && !profileData.email) {
+        // Only use demo defaults if we're truly in demo mode (no currentUser at all)
+        if (!currentUser) {
+          profileData = {
+            name: 'Demo User',
+            email: 'demo@fog.com',
+            phone: '',
+            age: null,
+            grade: 'College',
+            joinDate: new Date().toISOString().split('T')[0],
+            avatar: null
+          };
+        }
+      }
+
+      setUserProfile(profileData);
     };
 
     loadUserProfile();
-  }, []);
+  }, [currentUser]);
 
   // Mock saved devotionals
   const savedDevotionals = [
@@ -122,8 +183,14 @@ const Profile = () => {
 
   const handleSaveProfile = () => {
     try {
-      // Save to localStorage for now (temporarily disable Firebase)
-      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      // Save to localStorage (only for customizations like avatar, phone, grade)
+      // Always include current user's email to match on next load
+      const profileToSave = {
+        ...userProfile,
+        email: currentUser?.email || userProfile.email, // Always use current user's email
+        name: currentUser?.name || currentUser?.displayName || userProfile.name, // Always use current user's name
+      };
+      localStorage.setItem('userProfile', JSON.stringify(profileToSave));
       
       setIsEditing(false);
       setIsSaved(true);
@@ -168,6 +235,41 @@ const Profile = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const avatarUrl = reader.result;
+        const updatedProfile = { ...userProfile, avatar: avatarUrl };
+        setUserProfile(updatedProfile);
+        
+        // Save to localStorage immediately
+        try {
+          localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+          toast.success('Profile picture updated!');
+        } catch (error) {
+          console.error('Error saving profile:', error);
+          toast.error('Failed to save profile picture');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -176,10 +278,18 @@ const Profile = () => {
           <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
           <p className="text-gray-600 mt-1">Manage your account and view your activity</p>
         </div>
-        <button className="btn-outline flex items-center">
-          <LogOut size={16} className="mr-2" />
-          Sign Out
-        </button>
+        {currentUser && (
+          <button 
+            className="btn-outline flex items-center"
+            onClick={() => {
+              // Logout is handled by Layout component
+              window.location.href = '/#/login';
+            }}
+          >
+            <LogOut size={16} className="mr-2" />
+            Sign Out
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -187,18 +297,29 @@ const Profile = () => {
         <div className="lg:col-span-1">
           <div className={`card ${isSaved ? 'ring-2 ring-green-500 bg-green-50' : ''}`}>
             <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                {userProfile.avatar ? (
-                  <img 
-                    src={userProfile.avatar} 
-                    alt={userProfile.name}
-                    className="w-24 h-24 rounded-full object-cover"
+              <div className="relative w-24 h-24 mx-auto mb-4">
+                <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center overflow-hidden">
+                  {userProfile.avatar ? (
+                    <img 
+                      src={userProfile.avatar} 
+                      alt={userProfile.name}
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white text-2xl font-bold">
+                      {getInitials(userProfile.name)}
+                    </span>
+                  )}
+                </div>
+                <label className="absolute bottom-0 right-0 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-700 transition-colors shadow-lg">
+                  <Edit3 size={14} className="text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
                   />
-                ) : (
-                  <span className="text-white text-2xl font-bold">
-                    {getInitials(userProfile.name)}
-                  </span>
-                )}
+                </label>
               </div>
               
               <h2 className="text-xl font-semibold text-gray-900 mb-1">{userProfile.name}</h2>
@@ -395,6 +516,41 @@ const Profile = () => {
               <div className="card">
                 <h3 className="font-semibold text-gray-900 mb-4">Profile Information</h3>
                 <div className="space-y-4">
+                  {/* Profile Picture Upload */}
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center overflow-hidden">
+                        {userProfile.avatar ? (
+                          <img 
+                            src={userProfile.avatar} 
+                            alt={userProfile.name}
+                            className="w-20 h-20 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-white text-xl font-bold">
+                            {getInitials(userProfile.name)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Profile Picture
+                      </label>
+                      <label className="btn-outline inline-flex items-center cursor-pointer">
+                        <Edit3 size={16} className="mr-2" />
+                        {userProfile.avatar ? 'Change Picture' : 'Upload Picture'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarChange}
+                          className="hidden"
+                        />
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">JPG, PNG or GIF. Max size 5MB</p>
+                    </div>
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">

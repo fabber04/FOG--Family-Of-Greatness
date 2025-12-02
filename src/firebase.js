@@ -36,29 +36,55 @@ console.log('Firebase Config Status:', {
   appId: process.env.REACT_APP_FIREBASE_APP_ID ? 'Set' : 'Missing/Demo'
 });
 
+// Validate Firebase config before initialization
+const hasValidConfig = firebaseConfig.apiKey && 
+  firebaseConfig.apiKey !== "demo-api-key" &&
+  firebaseConfig.apiKey !== "your_actual_api_key_here" &&
+  firebaseConfig.projectId &&
+  firebaseConfig.projectId !== "demo-project";
+
 // Initialize Firebase
 let app;
-try {
-  app = initializeApp(firebaseConfig);
-} catch (error) {
-  console.error('Firebase initialization error:', error);
-  // Create a mock app for development
-  app = { name: 'demo-app' };
-}
-
-// Initialize Firebase services with error handling
 let db, auth, storage;
 
-try {
-  db = getFirestore(app);
-  auth = getAuth(app);
-  storage = getStorage(app);
-} catch (error) {
-  console.error('Firebase services initialization error:', error);
-  // Create mock services for development
+if (!hasValidConfig) {
+  console.warn('⚠️ Firebase not configured. Running in demo mode.');
+  console.warn('📝 To enable Firebase:');
+  console.warn('1. Create a .env file in the project root');
+  console.warn('2. Add your Firebase credentials (see env.example)');
+  console.warn('3. Restart the development server');
+  
+  // Set to null so the app can handle demo mode
+  app = null;
   db = null;
   auth = null;
   storage = null;
+} else {
+  try {
+    app = initializeApp(firebaseConfig);
+    console.log('✅ Firebase initialized successfully');
+    
+    // Initialize Firebase services
+    db = getFirestore(app);
+    auth = getAuth(app);
+    storage = getStorage(app);
+  } catch (error) {
+    console.error('❌ Firebase initialization error:', error);
+    console.error('Error details:', error.message);
+    
+    if (error.message.includes('api-key-not-valid')) {
+      console.error('🔑 Invalid API key. Please check your .env file:');
+      console.error('   - Make sure REACT_APP_FIREBASE_API_KEY is set correctly');
+      console.error('   - Get your API key from Firebase Console > Project Settings > General');
+      console.error('   - Restart the development server after updating .env');
+    }
+    
+    // Set to null so the app can handle errors gracefully
+    app = null;
+    db = null;
+    auth = null;
+    storage = null;
+  }
 }
 
 export { db, auth, storage };

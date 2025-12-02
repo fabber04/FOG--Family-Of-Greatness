@@ -18,7 +18,6 @@ import {
   Radio,
   Download,
   Bookmark,
-  Lock,
   Star,
   BookOpen,
   Users,
@@ -43,7 +42,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'spiritual-development',
       description: 'Start your day with this inspiring devotional message about walking in faith through life\'s challenges.',
-      cover: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=center',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/Wisdom%20keys.jpeg',
       duration: '15:30',
       publishDate: '2024-01-15',
       isLive: false,
@@ -61,7 +60,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'personal-development',
       description: 'Learn practical strategies for personal growth and overcoming life\'s challenges with biblical wisdom.',
-      cover: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&h=300&fit=crop&crop=center',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/Personal%20developments%20.jpeg',
       duration: '45:20',
       publishDate: '2024-01-14',
       isLive: false,
@@ -74,12 +73,12 @@ const Podcasts = () => {
     },
     {
       id: 3,
-      title: 'Live: Evening Prayer Service',
+      title: 'Live: Prayer Sessions',
       host: 'FOG Prayer Team',
       type: 'live',
       category: 'spiritual-development',
-      description: 'Join us live for our evening prayer service. Submit your prayer requests in real-time.',
-      cover: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop&crop=center',
+      description: 'Join us live prayer sessions every Monday, Wednesday and Friday.',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/Wisdom%20keys.jpeg',
       duration: 'Live',
       publishDate: '2024-01-15',
       isLive: true,
@@ -88,7 +87,7 @@ const Podcasts = () => {
       plays: 2100,
       tags: ['live', 'prayer', 'service', 'community'],
       audioUrl: '#',
-      transcript: 'Welcome to our live evening prayer service...'
+      transcript: 'Welcome to our live prayer sessions...'
     },
     {
       id: 4,
@@ -97,12 +96,11 @@ const Podcasts = () => {
       type: 'episode',
       category: 'relationships',
       description: 'Biblical principles for building and maintaining strong, healthy marriages.',
-      cover: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=300&fit=crop&crop=center',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/wisdom%20for%20relationships%20.jpeg',
       duration: '32:15',
       publishDate: '2024-01-13',
       isLive: false,
-      isFree: false,
-      price: 4.99,
+      isFree: true,
       rating: 4.7,
       plays: 1560,
       tags: ['relationships', 'marriage', 'biblical', 'wisdom'],
@@ -116,7 +114,7 @@ const Podcasts = () => {
       type: 'series',
       category: 'wisdom-keys',
       description: 'Discover the keys to wisdom that unlock success, purpose, and fulfillment in life.',
-      cover: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=300&h=300&fit=crop&crop=center',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/Wisdom%20keys.jpeg',
       duration: 'Series',
       publishDate: '2024-01-10',
       isLive: false,
@@ -134,12 +132,11 @@ const Podcasts = () => {
       type: 'episode',
       category: 'beyond-dating-game',
       description: 'Move beyond superficial dating and discover how to build meaningful, lasting relationships.',
-      cover: 'https://images.unsplash.com/photo-1493225457124-a3eb192ff757?w=300&h=300&fit=crop&crop=center',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/Beyond%20the%20dating%20Game.jpeg',
       duration: '38:45',
       publishDate: '2024-01-14',
       isLive: false,
-      isFree: false,
-      price: 3.99,
+      isFree: true,
       rating: 4.8,
       plays: 1800,
       tags: ['dating', 'relationships', 'love', 'meaningful'],
@@ -153,7 +150,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'wisdom-for-ladies',
       description: 'Empowering women to discover and embrace their God-given purpose and potential.',
-      cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=300&fit=crop&crop=center',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/exceptional%20ladies.jpeg',
       duration: '42:15',
       publishDate: '2024-01-12',
       isLive: false,
@@ -171,7 +168,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'teens',
       description: 'Real talk for teenagers about faith, relationships, school, and making wise choices.',
-      cover: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&h=300&fit=crop&crop=center',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/wisdom%20for%20teenagers.jpeg',
       duration: '28:30',
       publishDate: '2024-01-11',
       isLive: false,
@@ -189,7 +186,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'university-students',
       description: 'Practical advice for university students on maintaining faith while pursuing academic excellence.',
-      cover: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=center',
+      cover: '/FOG--Family-Of-Greatness/images/podcasts/wisdom%20for%20univeristy%20students.jpeg',
       duration: '35:20',
       publishDate: '2024-01-09',
       isLive: false,
@@ -238,7 +235,8 @@ const Podcasts = () => {
   };
 
   const handlePurchase = (podcast) => {
-    alert(`Processing payment for ${podcast.title} - $${podcast.price}`);
+    // All podcasts are free - no payment needed
+    handlePlay(podcast);
   };
 
   const getTypeIcon = (type) => {
@@ -483,8 +481,7 @@ const Podcasts = () => {
                       {formatTime(podcast.duration)}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">{podcast.plays} listening</span>
+                  <div className="flex items-center justify-end">
                     <button
                       onClick={() => handlePlay(podcast)}
                       className="flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
@@ -529,13 +526,6 @@ const Podcasts = () => {
                       </span>
                     </span>
                   </div>
-                  {!podcast.isFree && (
-                    <div className="absolute bottom-2 left-2">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                        ${podcast.price}
-                      </span>
-                    </div>
-                  )}
                   <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={() => handlePlay(podcast)}
@@ -587,23 +577,13 @@ const Podcasts = () => {
 
                   {/* Actions */}
                   <div className="flex space-x-2">
-                    {podcast.isFree ? (
-                      <button
-                        onClick={() => handlePlay(podcast)}
-                        className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
-                      >
-                        <Play className="w-4 h-4 mr-2" />
-                        Play
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handlePurchase(podcast)}
-                        className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-secondary-600 rounded-lg hover:bg-secondary-700"
-                      >
-                        <Lock className="w-4 h-4 mr-2" />
-                        Purchase
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handlePlay(podcast)}
+                      className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Play
+                    </button>
                     
                     <button className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
                       <Heart className="w-4 h-4" />
@@ -685,23 +665,13 @@ const Podcasts = () => {
                     </div>
                     
                     <div className="pt-4">
-                      {selectedPodcast.isFree ? (
-                        <button
-                          onClick={() => handlePlay(selectedPodcast)}
-                          className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
-                        >
-                          <Play className="w-4 h-4 mr-2" />
-                          Play Now
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handlePurchase(selectedPodcast)}
-                          className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-secondary-600 rounded-lg hover:bg-secondary-700"
-                        >
-                          <Lock className="w-4 h-4 mr-2" />
-                          Purchase for ${selectedPodcast.price}
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handlePlay(selectedPodcast)}
+                        className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Play Now
+                      </button>
                     </div>
                   </div>
                 </div>

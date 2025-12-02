@@ -29,188 +29,116 @@ const GeniusAcademy = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showEnrollment, setShowEnrollment] = useState(false);
 
-  // Mock Genius Academy data
+  // Genius Academy Courses
   const courses = [
     {
       id: 1,
-      title: 'Biblical Leadership Fundamentals',
+      title: 'One Level 01 Relationship Coaching Program',
       instructor: 'Coach Noble Masvingise',
-      category: 'leadership',
+      category: 'relationships',
       level: 'beginner',
-      description: 'Learn the foundational principles of biblical leadership and how to apply them in ministry and life.',
-      cover: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop&crop=center',
-      duration: '8 weeks',
-      sessions: 16,
-      students: 245,
-      rating: 4.9,
-      price: 199.99,
-      originalPrice: 299.99,
+      description: 'Join one level 01 Relationship coaching program and learn key foundations and principles that make successful relationships. "Learn before you enter into a relationship." Download our course outline below. Coach Noble Masvingise',
+      cover: '/FOG--Family-Of-Greatness/images/genius%20academy/one%20level%20relationship.jpeg',
+      duration: '12 weeks',
+      sessions: 40,
+      mentorshipHours: '40hrs of mentorship',
+      students: 0,
+      rating: 5.0,
+      price: 30,
+      originalPrice: null,
       isEnrolled: false,
-      startDate: '2024-02-01',
-      tags: ['leadership', 'biblical', 'ministry', 'fundamentals'],
+      startDate: new Date().toISOString().split('T')[0],
+      tags: ['relationships', 'coaching', 'foundations', 'principles'],
+      bonus: '2 FREE BOOKS!',
       curriculum: [
-        'Week 1: Understanding Biblical Leadership',
-        'Week 2: Character and Integrity',
-        'Week 3: Vision and Mission',
-        'Week 4: Team Building',
-        'Week 5: Communication Skills',
-        'Week 6: Decision Making',
-        'Week 7: Conflict Resolution',
-        'Week 8: Legacy Building'
+        'Week 1-3: Foundations of Successful Relationships',
+        'Week 4-6: Key Principles for Relationship Success',
+        'Week 7-9: Building Strong Foundations',
+        'Week 10-12: Practical Application and Mentorship'
       ],
       features: [
-        'Live weekly sessions',
-        'Interactive Q&A',
-        'Downloadable resources',
-        'Certificate of completion',
-        'Phone group access',
-        'Lifetime access'
+        '12 weeks comprehensive program',
+        '40hrs of mentorship',
+        'Downloadable course outline',
+        '2 FREE BOOKS included',
+        'Direct mentorship with Coach Noble',
+        'Learn before you enter into a relationship'
       ]
     },
     {
       id: 2,
-      title: 'Advanced Ministry Strategy',
-      instructor: 'Pastor Mike Johnson',
-      category: 'ministry',
-      level: 'advanced',
-      description: 'Advanced strategies for building and growing effective ministries in the digital age.',
-      cover: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop&crop=center',
-      duration: '12 weeks',
-      sessions: 24,
-      students: 189,
-      rating: 4.8,
-      price: 299.99,
-      originalPrice: 399.99,
+      title: 'Level 02: Learn how to run your relationship in a Godly way!',
+      instructor: 'Coach Noble Masvingise',
+      category: 'relationships',
+      level: 'intermediate',
+      description: 'In this course you will learn what to do and what not to do in a relationship. If you are in a relationship, you need this course!!',
+      cover: '/FOG--Family-Of-Greatness/images/genius%20academy/level%202.jpeg',
+      duration: '16 weeks',
+      sessions: 60,
+      mentorshipHours: '60hrs of mentorship',
+      students: 0,
+      rating: 5.0,
+      price: 60,
+      priceLabel: 'investment',
+      originalPrice: null,
       isEnrolled: false,
-      startDate: '2024-02-15',
-      tags: ['ministry', 'strategy', 'advanced', 'digital'],
+      startDate: new Date().toISOString().split('T')[0],
+      tags: ['relationships', 'godly', 'principles', 'guidance'],
+      bonus: '3 FREE BOOKS',
       curriculum: [
-        'Week 1-3: Digital Ministry Foundations',
-        'Week 4-6: Content Strategy',
-        'Week 7-9: Community Building',
-        'Week 10-12: Growth and Scaling'
+        'Week 1-4: Godly Principles for Relationships',
+        'Week 5-8: What to Do in Your Relationship',
+        'Week 9-12: What NOT to Do in Your Relationship',
+        'Week 13-16: Running Your Relationship God\'s Way'
       ],
       features: [
-        'Live weekly sessions',
-        'One-on-one mentoring',
-        'Strategy templates',
-        'Case studies',
-        'Phone group access',
-        'Lifetime access'
+        '16 weeks comprehensive program',
+        '60hrs of mentorship',
+        'Learn what to do and what not to do',
+        '3 FREE BOOKS included',
+        'Direct mentorship with Coach Noble',
+        'Essential for those in relationships'
       ]
     },
     {
       id: 3,
-      title: 'Financial Stewardship Mastery',
-      instructor: 'Financial Ministry Team',
-      category: 'finance',
-      level: 'intermediate',
-      description: 'Master biblical financial principles and learn practical money management skills.',
-      cover: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=300&fit=crop&crop=center',
-      duration: '6 weeks',
-      sessions: 12,
-      students: 312,
-      rating: 4.7,
-      price: 149.99,
-      originalPrice: 199.99,
-      isEnrolled: false,
-      startDate: '2024-02-10',
-      tags: ['finance', 'stewardship', 'biblical', 'practical'],
-      curriculum: [
-        'Week 1: Biblical Financial Principles',
-        'Week 2: Budgeting and Planning',
-        'Week 3: Debt Management',
-        'Week 4: Investment Basics',
-        'Week 5: Generosity and Giving',
-        'Week 6: Long-term Financial Planning'
-      ],
-      features: [
-        'Live weekly sessions',
-        'Financial planning tools',
-        'Budget templates',
-        'Expert Q&A',
-        'Phone group access',
-        'Lifetime access'
-      ]
-    },
-    {
-      id: 4,
-      title: 'Youth Ministry Excellence',
-      instructor: 'Youth Ministry Experts',
-      category: 'youth',
-      level: 'intermediate',
-      description: 'Comprehensive training for effective youth ministry leadership and engagement.',
-      cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=300&fit=crop&crop=center',
-      duration: '10 weeks',
-      sessions: 20,
-      students: 178,
-      rating: 4.6,
-      price: 249.99,
-      originalPrice: 349.99,
-      isEnrolled: false,
-      startDate: '2024-02-20',
-      tags: ['youth', 'ministry', 'leadership', 'engagement'],
-      curriculum: [
-        'Week 1-2: Understanding Youth Culture',
-        'Week 3-4: Building Relationships',
-        'Week 5-6: Program Development',
-        'Week 7-8: Crisis Management',
-        'Week 9-10: Long-term Impact'
-      ],
-      features: [
-        'Live weekly sessions',
-        'Youth program templates',
-        'Crisis management guide',
-        'Peer networking',
-        'Phone group access',
-        'Lifetime access'
-      ]
-    },
-    {
-      id: 5,
-      title: 'Prayer and Intercession Mastery',
-      instructor: 'Rev. David Smith',
-      category: 'spiritual',
+      title: 'Heal from Heartbreak and Restart with Wisdom',
+      instructor: 'Coach Noble Masvingise',
+      category: 'relationships',
       level: 'beginner',
-      description: 'Deepen your prayer life and learn the power of intercessory prayer.',
-      cover: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&crop=center',
-      duration: '8 weeks',
-      sessions: 16,
-      students: 423,
-      rating: 4.9,
-      price: 179.99,
-      originalPrice: 249.99,
+      description: 'Learn how to heal from a heartbreak, and restart with wisdom in your next relationship. Come let us show you were you missed it as we help you heal.',
+      cover: '/FOG--Family-Of-Greatness/images/genius%20academy/restart.jpeg',
+      duration: '4 weeks',
+      sessions: 8,
+      mentorshipHours: '8 hours',
+      students: 0,
+      rating: 5.0,
+      price: 15,
+      originalPrice: null,
       isEnrolled: false,
-      startDate: '2024-02-05',
-      tags: ['prayer', 'intercession', 'spiritual', 'growth'],
+      startDate: new Date().toISOString().split('T')[0],
+      tags: ['healing', 'heartbreak', 'restart', 'wisdom'],
+      bonus: '1 FREE BOOK',
       curriculum: [
-        'Week 1: Foundations of Prayer',
-        'Week 2: Types of Prayer',
-        'Week 3: Intercessory Prayer',
-        'Week 4: Spiritual Warfare',
-        'Week 5: Prayer Strategies',
-        'Week 6: Building Prayer Teams',
-        'Week 7: Prayer and Revival',
-        'Week 8: Sustaining Prayer Life'
+        'Week 1: Understanding Heartbreak and Healing',
+        'Week 2: Identifying Where You Missed It',
+        'Week 3: Healing Process and Recovery',
+        'Week 4: Restarting with Wisdom'
       ],
       features: [
-        'Live weekly sessions',
-        'Prayer guides and templates',
-        'Spiritual warfare resources',
-        'Prayer team building',
-        'Phone group access',
-        'Lifetime access'
+        '4 weeks focused program',
+        '8 hours of mentorship',
+        'Learn from past mistakes',
+        '1 FREE BOOK included',
+        'Direct mentorship with Coach Noble',
+        'Heal and restart with wisdom'
       ]
     }
   ];
 
   const categories = [
     { id: 'all', name: 'All Categories', count: courses.length },
-    { id: 'leadership', name: 'Leadership', count: courses.filter(course => course.category === 'leadership').length },
-    { id: 'ministry', name: 'Ministry', count: courses.filter(course => course.category === 'ministry').length },
-    { id: 'finance', name: 'Finance', count: courses.filter(course => course.category === 'finance').length },
-    { id: 'youth', name: 'Youth', count: courses.filter(course => course.category === 'youth').length },
-    { id: 'spiritual', name: 'Spiritual', count: courses.filter(course => course.category === 'spiritual').length }
+    { id: 'relationships', name: 'Relationships', count: courses.filter(course => course.category === 'relationships').length }
   ];
 
   const levels = [
@@ -230,8 +158,11 @@ const GeniusAcademy = () => {
   });
 
   const handleEnroll = (course) => {
-    setSelectedCourse(course);
-    setShowEnrollment(true);
+    // Open WhatsApp with pre-made message
+    const phoneNumber = '263784553495'; // Coach Noble's WhatsApp number (without + and spaces)
+    const message = encodeURIComponent(`I want to sign up for this level: ${course.title}`);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handlePhoneEnrollment = (course) => {
@@ -302,7 +233,7 @@ const GeniusAcademy = () => {
             <GraduationCap className="mx-auto h-16 w-16 mb-4" />
             <h2 className="text-2xl font-bold mb-4">Join the Genius Academy</h2>
             <p className="text-lg mb-6 max-w-2xl mx-auto">
-              Access world-class ministry training, connect with experts, and grow your skills through our comprehensive Genius Academy program.
+              We exist to revolutionize Real Love in young people. This is the number one academy for youth relationship coaching hosted by our mentor Coach Noble Masvingise an author of more than 25 books.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="bg-white text-primary-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors">
@@ -386,10 +317,17 @@ const GeniusAcademy = () => {
                     {course.level}
                   </span>
                 </div>
-                {course.originalPrice > course.price && (
+                {course.originalPrice && course.originalPrice > course.price && (
                   <div className="absolute bottom-2 left-2">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       {Math.round(((course.originalPrice - course.price) / course.originalPrice) * 100)}% OFF
+                    </span>
+                  </div>
+                )}
+                {course.bonus && (
+                  <div className="absolute bottom-2 right-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {course.bonus}
                     </span>
                   </div>
                 )}
@@ -414,7 +352,7 @@ const GeniusAcademy = () => {
                   </div>
                   <div className="flex items-center">
                     <Video className="w-4 h-4 mr-1" />
-                    {course.sessions} sessions
+                    {course.mentorshipHours || `${course.sessions} sessions`}
                   </div>
                 </div>
 
@@ -432,10 +370,20 @@ const GeniusAcademy = () => {
 
                 {/* Price */}
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <span className="text-2xl font-bold text-primary-600">${course.price}</span>
-                    {course.originalPrice > course.price && (
-                      <span className="text-sm text-gray-500 line-through ml-2">${course.originalPrice}</span>
+                  <div className="flex flex-col">
+                    <div className="flex items-center">
+                      <span className="text-2xl font-bold text-primary-600">${course.price}</span>
+                      {course.originalPrice && course.originalPrice > course.price && (
+                        <span className="text-sm text-gray-500 line-through ml-2">${course.originalPrice}</span>
+                      )}
+                      {course.priceLabel ? (
+                        <span className="text-sm font-semibold text-primary-600 ml-2">{course.priceLabel}</span>
+                      ) : course.price < 50 && (
+                        <span className="text-sm font-semibold text-green-600 ml-2">Only</span>
+                      )}
+                    </div>
+                    {course.bonus && (
+                      <span className="text-sm font-semibold text-green-600 mt-1">{course.bonus}</span>
                     )}
                   </div>
                   <div className="text-sm text-gray-500">
@@ -520,7 +468,7 @@ const GeniusAcademy = () => {
                       </div>
                       <div className="flex items-center text-sm text-gray-500">
                         <Clock className="w-4 h-4 mr-2" />
-                        {selectedCourse.duration} • {selectedCourse.sessions} sessions
+                        {selectedCourse.duration} • {selectedCourse.mentorshipHours || `${selectedCourse.sessions} sessions`}
                       </div>
                     </div>
                   </div>
@@ -559,9 +507,21 @@ const GeniusAcademy = () => {
                     <div className="pt-4 border-t border-gray-200">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <span className="text-3xl font-bold text-primary-600">${selectedCourse.price}</span>
-                          {selectedCourse.originalPrice > selectedCourse.price && (
-                            <span className="text-lg text-gray-500 line-through ml-2">${selectedCourse.originalPrice}</span>
+                          <div className="flex items-center">
+                            <span className="text-3xl font-bold text-primary-600">${selectedCourse.price}</span>
+                            {selectedCourse.originalPrice && selectedCourse.originalPrice > selectedCourse.price && (
+                              <span className="text-lg text-gray-500 line-through ml-2">${selectedCourse.originalPrice}</span>
+                            )}
+                            {selectedCourse.priceLabel ? (
+                              <span className="text-sm font-semibold text-primary-600 ml-2">{selectedCourse.priceLabel}</span>
+                            ) : selectedCourse.price < 50 && (
+                              <span className="text-sm font-semibold text-green-600 ml-2">Only</span>
+                            )}
+                          </div>
+                          {selectedCourse.bonus && (
+                            <div className="mt-2">
+                              <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">{selectedCourse.bonus}</span>
+                            </div>
                           )}
                         </div>
                         <div className="text-right">
@@ -611,12 +571,25 @@ const GeniusAcademy = () => {
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Course Price:</span>
-                        <span className="text-lg font-bold text-primary-600">${selectedCourse.price}</span>
+                        <div className="flex items-center">
+                          <span className="text-lg font-bold text-primary-600">${selectedCourse.price}</span>
+                          {selectedCourse.price < 50 && (
+                            <span className="text-sm font-semibold text-green-600 ml-2">Only</span>
+                          )}
+                        </div>
                       </div>
-                      {selectedCourse.originalPrice > selectedCourse.price && (
-                        <div className="flex justify-between items-center text-sm text-gray-500">
+                      {selectedCourse.originalPrice && selectedCourse.originalPrice > selectedCourse.price && (
+                        <div className="flex justify-between items-center text-sm text-gray-500 mt-2">
                           <span>Original Price:</span>
                           <span className="line-through">${selectedCourse.originalPrice}</span>
+                        </div>
+                      )}
+                      {selectedCourse.bonus && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-semibold text-green-600">Bonus:</span>
+                            <span className="text-sm font-semibold text-green-600">{selectedCourse.bonus}</span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -630,12 +603,16 @@ const GeniusAcademy = () => {
                       </button>
                       <button
                         onClick={() => {
-                          alert('Redirecting to payment...');
+                          // Open WhatsApp with pre-made message
+                          const phoneNumber = '263784553495';
+                          const message = encodeURIComponent(`I want to sign up for this level: ${selectedCourse.title}`);
+                          const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+                          window.open(whatsappUrl, '_blank');
                           setShowEnrollment(false);
                         }}
                         className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700"
                       >
-                        Proceed to Payment
+                        Enroll via WhatsApp
                       </button>
                     </div>
                     

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -175,9 +175,16 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p>Admin: admin@fog.com / admin123</p>
-            <p>User: user@fog.com / user123</p>
+          <div className="mt-6 text-center text-sm">
+            <span className="text-gray-600">Don't have an account? </span>
+            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
+              Sign up
+            </Link>
+          </div>
+
+          <div className="mt-4 text-center text-xs text-gray-500">
+            <p>Demo: admin@fog.com / admin123</p>
+            <p>Demo: user@fog.com / user123</p>
           </div>
         </div>
       </div>

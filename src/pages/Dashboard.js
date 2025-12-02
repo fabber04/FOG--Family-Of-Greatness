@@ -77,11 +77,11 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 lg:space-y-10 xl:space-y-12 2xl:space-y-16">
       {/* Enhanced Hero Section */}
-      <div className="gradient-bg rounded-3xl lg:rounded-[2rem] xl:rounded-[2.5rem] p-6 lg:p-10 xl:p-12 2xl:p-16 text-white text-center hover-lift glow-primary relative overflow-hidden">
+      <div className="gradient-bg rounded-3xl lg:rounded-[2rem] xl:rounded-[2.5rem] p-6 lg:p-10 xl:p-12 2xl:p-16 text-white text-center hover-lift glow-primary relative overflow-hidden min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]">
         <div className="absolute inset-0 opacity-20">
-          <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0070.jpg" alt="FOG Community" className="w-full h-full object-cover" />
+          <img src="/FOG--Family-Of-Greatness/images/meet%20our%20mentor.jpeg" alt="Meet Our Mentor" className="w-full h-full object-cover" />
         </div>
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col justify-center h-full min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]">
           <h1 className="text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold mb-4 text-shadow">
             WELCOME TO FAMILY OF GREATNESS
           </h1>
@@ -151,64 +151,63 @@ const Dashboard = () => {
       <div className="card">
         <h2 className="text-xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-semibold mb-6 text-center">Our Services & Events</h2>
         <div className="grid grid-cols-3 gap-6">
-          {/* Morning Prayer Sessions */}
+          {/* Prayer Sessions */}
           <div className="text-center p-6 bg-blue-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0070.jpg" alt="Prayer Room" className="w-full h-full object-cover" />
+              <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0070.jpg" alt="Prayer Room" className="w-full h-full object-cover" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Morning Prayer Sessions</h3>
-            <p className="text-gray-600">Daily at 4:00 AM</p>
-            <p className="text-gray-500 text-sm">Harare Central Prayer Room</p>
+            <h3 className="font-semibold text-lg mb-2">Prayer Sessions</h3>
+            <p className="text-gray-600">Every Monday, Wednesday, Friday</p>
+            <p className="text-gray-500 text-sm">Time: 0400hrs</p>
           </div>
 
           {/* Weekly Service */}
           <div className="text-center p-6 bg-purple-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0064.jpg" alt="Main Hall" className="w-full h-full object-cover" />
+              <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0064.jpg" alt="Main Hall" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Weekly Service</h3>
-            <p className="text-gray-600">Every Sunday at 9:00 AM</p>
-            <p className="text-gray-500 text-sm">Bulawayo Main Hall</p>
+            <p className="text-gray-600">Every Wednesday (Online)</p>
           </div>
 
-          {/* Relationship Thursday */}
+          {/* Relationship Service */}
           <div className="text-center p-6 bg-pink-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0062.jpg" alt="Community Center" className="w-full h-full object-cover" />
+              <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0062.jpg" alt="Community Center" className="w-full h-full object-cover" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Relationship Thursday</h3>
-            <p className="text-gray-600">Every Thursday at 7:00 PM</p>
-            <p className="text-gray-500 text-sm">Chitungwiza Community Center</p>
+            <h3 className="font-semibold text-lg mb-2">Relationship Service</h3>
+            <p className="text-gray-600">Every Thursday - 2000Hrs CAT</p>
+            <p className="text-gray-500 text-sm">Live on YouTube</p>
           </div>
 
           {/* Empowerment Nights */}
           <div className="text-center p-6 bg-orange-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0065.jpg" alt="Conference Room" className="w-full h-full object-cover" />
+              <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0065.jpg" alt="Conference Room" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Empowerment Nights</h3>
-            <p className="text-gray-600">Monthly at 6:30 PM</p>
-            <p className="text-gray-500 text-sm">Mutare Conference Room</p>
+            <p className="text-gray-600">Hosted twice every year</p>
+            <p className="text-gray-500 text-sm">(Dates to be announced)</p>
           </div>
 
           {/* Social Dinner */}
           <div className="text-center p-6 bg-green-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0063.jpg" alt="Dining Hall" className="w-full h-full object-cover" />
+              <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0063.jpg" alt="Dining Hall" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Social Dinner</h3>
-            <p className="text-gray-600">Quarterly at 7:00 PM</p>
-            <p className="text-gray-500 text-sm">Gweru Dining Hall</p>
+            <p className="text-gray-600">Hosted once every year</p>
+            <p className="text-gray-500 text-sm">(Dates to be announced)</p>
           </div>
 
           {/* Wisdom Class */}
           <div className="text-center p-6 bg-indigo-50 rounded-xl hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                             <img src="/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0061.jpg" alt="Learning Center" className="w-full h-full object-cover" />
+              <img src="/FOG--Family-Of-Greatness/images/wisdom%20icon.jpeg" alt="Wisdom Class" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Wisdom Class</h3>
-            <p className="text-gray-600">Ongoing at 4:00 PM</p>
-            <p className="text-gray-500 text-sm">Kwekwe Learning Center</p>
+            <p className="text-gray-600">Hosted once every month</p>
+            <p className="text-gray-500 text-sm">(Join our platform to stay updated on the dates)</p>
           </div>
         </div>
       </div>

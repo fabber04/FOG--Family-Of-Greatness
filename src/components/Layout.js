@@ -20,7 +20,8 @@ import {
   GraduationCap,
   HeartHandshake,
   FileText,
-  LogOut
+  LogOut,
+  Settings
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -81,6 +82,7 @@ const Layout = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     ...(isAdmin() ? [
+      { name: 'Admin', href: '/admin', icon: Settings },
       { name: 'Members', href: '/members', icon: Users }
     ] : []),
     { name: 'Library', href: '/library', icon: Library },

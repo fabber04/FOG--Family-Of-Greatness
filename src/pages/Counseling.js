@@ -42,18 +42,9 @@ const Counseling = () => {
           <div className="text-center">
             <Star className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-4">A Message of Hope</h3>
-            <div className="max-w-2xl mx-auto space-y-4 text-gray-700">
-              <p>
-                Whatever you're going through right now, know that it's temporary. 
-                God has a plan for your life, and He's working all things together for your good.
-              </p>
-              <p>
-                You are stronger than you think, more loved than you know, and more capable than you believe. 
-                Every challenge you face is an opportunity to grow closer to God and discover your true strength.
-              </p>
-              <p>
-                Remember, it's okay to not be okay. It's okay to ask for help. 
-                You don't have to carry your burdens alone.
+            <div className="max-w-2xl mx-auto text-gray-700">
+              <p className="text-lg">
+                Do not cry alone, our mentor is there to listen, share wisdom and pray with you!
               </p>
             </div>
           </div>
@@ -63,7 +54,7 @@ const Counseling = () => {
         <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 mb-8">
           <div className="text-center mb-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Need More Support?</h3>
-            <p className="text-gray-600">Connect with Coach Noble for personalized guidance and encouragement</p>
+            <p className="text-gray-600">Connect with our mentor for personal guidance, counselling and prayer.</p>
           </div>
           
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
@@ -72,7 +63,7 @@ const Counseling = () => {
                 <span className="text-white text-2xl font-bold">CN</span>
               </div>
               <h4 className="text-lg font-semibold text-gray-900">Coach Noble</h4>
-              <p className="text-gray-600">Youth Pastor & Life Coach</p>
+              <p className="text-gray-600">Youth Mentor and Life Coach</p>
             </div>
             
                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

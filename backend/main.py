@@ -8,7 +8,7 @@ import os
 
 from database import engine, get_db
 from models import Base
-from routes import auth, library, users, prayer
+from routes import auth, library, users, prayer, events, podcasts, courses, devotionals, announcements
 from utils.auth import get_current_user
 
 # Load environment variables
@@ -26,7 +26,12 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # React dev server
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://localhost:3001",
+        "http://localhost:3002",  # Additional React dev server port
+        "https://fabber04.github.io"  # GitHub Pages deployment
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,6 +41,12 @@ app.add_middleware(
 security = HTTPBearer()
 
 # Mount static files for uploaded content
+# Create directories if they don't exist
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("uploads/events", exist_ok=True)
+os.makedirs("uploads/podcasts", exist_ok=True)
+os.makedirs("uploads/courses", exist_ok=True)
+
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Include routers
@@ -43,6 +54,11 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(library.router, prefix="/api/library", tags=["Library"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(prayer.router, prefix="/api/prayer", tags=["Prayer Requests"])
+app.include_router(events.router, prefix="/api/events", tags=["Events"])
+app.include_router(podcasts.router, prefix="/api/podcasts", tags=["Podcasts"])
+app.include_router(courses.router, prefix="/api/courses", tags=["Genius Academy Courses"])
+app.include_router(devotionals.router, prefix="/api/devotionals", tags=["Devotionals"])
+app.include_router(announcements.router, prefix="/api/announcements", tags=["Announcements"])
 
 @app.get("/")
 async def root():

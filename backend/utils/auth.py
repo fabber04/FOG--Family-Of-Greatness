@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 from schemas import TokenData
+from utils.firebase_auth import get_firebase_user_info
 
 # Configuration
 SECRET_KEY = "your-secret-key-here-change-in-production"  # Change this in production!
@@ -64,25 +65,55 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
-    """Get the current authenticated user."""
+    """Get the current authenticated user. Supports both JWT and Firebase tokens."""
     token = credentials.credentials
-    token_data = verify_token(token)
     
-    user = db.query(User).filter(User.username == token_data.username).first()
-    if user is None:
+    # Try Firebase token first
+    firebase_user_info = get_firebase_user_info(token)
+    if firebase_user_info:
+        # Find user by Firebase UID
+        user = db.query(User).filter(User.firebase_uid == firebase_user_info["uid"]).first()
+        if user:
+            if not user.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Inactive user"
+                )
+            return user
+        else:
+            # User exists in Firebase but not in backend - this shouldn't happen if sync works
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found in backend. Please sync your account.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    
+    # Fall back to JWT token verification
+    try:
+        token_data = verify_token(token)
+        user = db.query(User).filter(User.username == token_data.username).first()
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user"
+            )
+        
+        return user
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
-        )
-    
-    return user
 
 def get_current_admin_user(current_user: User = Depends(get_current_user)) -> User:
     """Get the current authenticated admin user."""
