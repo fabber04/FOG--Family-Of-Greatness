@@ -118,6 +118,11 @@ export const memberService = {
       method: 'DELETE',
     });
   },
+
+  // Get user statistics (admin only)
+  async getUserStats() {
+    return apiRequest('/api/users/stats/overview');
+  },
 };
 
 // Library API
@@ -199,6 +204,11 @@ export const prayerService = {
       method: 'POST',
       body: JSON.stringify({ status }),
     });
+  },
+
+  // Get prayer statistics (admin only)
+  async getPrayerStats() {
+    return apiRequest('/api/prayer/stats/overview');
   },
 };
 
@@ -326,6 +336,27 @@ export const podcastService = {
     formData.append('file', file);
     
     const response = await fetch(`${API_BASE_URL}/api/podcasts/upload-cover`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  },
+
+  async uploadPodcastAudio(file) {
+    const token = await getAuthToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(`${API_BASE_URL}/api/podcasts/upload-audio`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

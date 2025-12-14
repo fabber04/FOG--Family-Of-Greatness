@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Headphones, 
   Search, 
@@ -21,8 +21,12 @@ import {
   Star,
   BookOpen,
   Users,
-  GraduationCap
+  GraduationCap,
+  Loader2
 } from 'lucide-react';
+import AudioPlayer from '../components/AudioPlayer';
+import { isGoogleDriveLink } from '../utils/googleDrive';
+import { podcastService } from '../services/apiService';
 
 const Podcasts = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,9 +36,70 @@ const Podcasts = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [playingPodcast, setPlayingPodcast] = useState(null);
+  const [podcasts, setPodcasts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock podcasts data
-  const podcasts = [
+  // Fetch podcasts from API
+  useEffect(() => {
+    const loadPodcasts = async () => {
+      try {
+        setLoading(true);
+        const data = await podcastService.getPodcasts();
+        // Map API response to component format
+        const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+        const mappedPodcasts = data.map(podcast => {
+          // Helper to build full URL
+          const buildUrl = (url) => {
+            if (!url || url === '#') return '#';
+            if (url.startsWith('http')) return url;
+            return `${API_BASE}${url}`;
+          };
+          
+          return {
+            id: podcast.id,
+            title: podcast.title,
+            host: podcast.host,
+            type: podcast.type,
+            category: podcast.category,
+            description: podcast.description,
+            cover: buildUrl(podcast.cover),
+            duration: podcast.duration || 'N/A',
+            publishDate: podcast.publish_date ? podcast.publish_date.split('T')[0] : new Date().toISOString().split('T')[0],
+            isLive: podcast.is_live || false,
+            isFree: podcast.is_free !== undefined ? podcast.is_free : true,
+            rating: podcast.rating || 0,
+            plays: podcast.plays || 0,
+            tags: podcast.tags ? (typeof podcast.tags === 'string' ? podcast.tags.split(',').map(t => t.trim()) : podcast.tags) : [],
+            audioUrl: buildUrl(podcast.audio_url),
+            transcript: podcast.transcript || ''
+          };
+        });
+        // Sort podcasts by episode number (extract number from title)
+        const sortedPodcasts = mappedPodcasts.sort((a, b) => {
+          // Extract episode number from title (e.g., "Eps 01" -> 1, "Esp 02" -> 2)
+          const getEpisodeNumber = (title) => {
+            const match = title.match(/(?:Eps?|Esp)\s*(\d+)/i);
+            return match ? parseInt(match[1], 10) : 9999; // Put non-matching at end
+          };
+          return getEpisodeNumber(a.title) - getEpisodeNumber(b.title);
+        });
+        
+        setPodcasts(sortedPodcasts);
+      } catch (error) {
+        console.error('Error loading podcasts:', error);
+        // Fallback to empty array on error
+        setPodcasts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPodcasts();
+  }, []);
+
+  // Mock podcasts data - can include Google Drive links in audioUrl (fallback if API fails)
+  const mockPodcasts = [
     {
       id: 1,
       title: 'Morning Devotion: Walking in Faith',
@@ -230,8 +295,50 @@ const Podcasts = () => {
   const handlePlay = (podcast) => {
     setSelectedPodcast(podcast);
     setIsPlaying(true);
-    // Mock audio player functionality
-    alert(`Playing: ${podcast.title}`);
+    
+    // If podcast has a valid audio URL (not '#'), use the audio player
+    if (podcast.audioUrl && podcast.audioUrl !== '#') {
+      setPlayingPodcast(podcast);
+    } else {
+      // Show alert if no audio URL
+      alert(`No audio available for: ${podcast.title}`);
+    }
+  };
+
+  const handleClosePlayer = () => {
+    setPlayingPodcast(null);
+    setIsPlaying(false);
+  };
+
+  const handleDownload = (podcast) => {
+    if (!podcast.audioUrl || podcast.audioUrl === '#') {
+      alert('No audio available for download');
+      return;
+    }
+
+    // Get download URL
+    const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    let downloadUrl = podcast.audioUrl;
+    
+    // Convert relative URL to absolute if needed
+    if (downloadUrl.startsWith('/')) {
+      downloadUrl = `${API_BASE}${downloadUrl}`;
+    } else if (!downloadUrl.startsWith('http')) {
+      downloadUrl = `${API_BASE}/${downloadUrl}`;
+    }
+    
+    // Extract filename from URL (handle URL encoding)
+    const urlPath = podcast.audioUrl.includes('/') ? podcast.audioUrl.split('/').pop() : podcast.audioUrl;
+    const filename = decodeURIComponent(urlPath) || `${podcast.title || 'podcast'}.${podcast.audioUrl.split('.').pop() || 'm4a'}`;
+    
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handlePurchase = (podcast) => {
@@ -499,6 +606,17 @@ const Podcasts = () => {
         {/* Podcasts Grid */}
         <div id="podcasts-section" className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">All Podcasts</h2>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+              <span className="ml-3 text-gray-600">Loading podcasts...</span>
+            </div>
+          ) : filteredPodcasts.filter(podcast => !podcast.isLive).length === 0 ? (
+            <div className="text-center py-12">
+              <Headphones className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No podcasts found</p>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredPodcasts.filter(podcast => !podcast.isLive).map((podcast) => (
               <div key={podcast.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -579,13 +697,21 @@ const Podcasts = () => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handlePlay(podcast)}
-                      className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+                      className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
                     >
                       <Play className="w-4 h-4 mr-2" />
                       Play
                     </button>
                     
-                    <button className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <button
+                      onClick={() => handleDownload(podcast)}
+                      className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      title="Download podcast"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    
+                    <button className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                       <Heart className="w-4 h-4" />
                     </button>
                   </div>
@@ -593,16 +719,8 @@ const Podcasts = () => {
               </div>
             ))}
           </div>
+          )}
         </div>
-
-        {/* No Results */}
-        {filteredPodcasts.filter(podcast => !podcast.isLive).length === 0 && (
-          <div className="text-center py-12">
-            <Headphones className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No podcasts found</h3>
-            <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
-          </div>
-        )}
 
         {/* Podcast Player Modal */}
         {selectedPodcast && (
@@ -664,13 +782,21 @@ const Podcasts = () => {
                       </div>
                     </div>
                     
-                    <div className="pt-4">
+                    <div className="pt-4 flex gap-2">
                       <button
                         onClick={() => handlePlay(selectedPodcast)}
-                        className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+                        className="flex-1 flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
                       >
                         <Play className="w-4 h-4 mr-2" />
                         Play Now
+                      </button>
+                      <button
+                        onClick={() => handleDownload(selectedPodcast)}
+                        className="flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                        title="Download podcast"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
                       </button>
                     </div>
                   </div>
@@ -678,6 +804,17 @@ const Podcasts = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Audio Player */}
+        {playingPodcast && (
+          <AudioPlayer
+            audioUrl={playingPodcast.audioUrl}
+            podcastId={playingPodcast.id}
+            podcastTitle={playingPodcast.title}
+            podcastCover={playingPodcast.cover}
+            onClose={handleClosePlayer}
+          />
         )}
       </div>
     </div>

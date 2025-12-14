@@ -10,12 +10,20 @@ from database import engine, get_db
 from models import Base
 from routes import auth, library, users, prayer, events, podcasts, courses, devotionals, announcements
 from utils.auth import get_current_user
+from file_server import initialize_storage, STORAGE_DIR
 
 # Load environment variables
 load_dotenv()
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+# Initialize file storage
+try:
+    initialize_storage()
+except Exception as e:
+    print(f" Warning: File storage initialization failed: {e}")
+    print("   Server will continue, but file uploads may not work properly")
 
 app = FastAPI(
     title="FOG API",
@@ -41,13 +49,26 @@ app.add_middleware(
 security = HTTPBearer()
 
 # Mount static files for uploaded content
-# Create directories if they don't exist
+# Legacy uploads directory (for backward compatibility)
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("uploads/events", exist_ok=True)
 os.makedirs("uploads/podcasts", exist_ok=True)
+os.makedirs("uploads/podcasts/audio", exist_ok=True)
 os.makedirs("uploads/courses", exist_ok=True)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Mount file server storage directory
+# This serves files from the centralized storage location
+try:
+    storage_path = str(STORAGE_DIR)
+    if os.path.exists(storage_path):
+        app.mount("/storage", StaticFiles(directory=storage_path), name="storage")
+        print(f"Storage mounted at /storage from {storage_path}")
+    else:
+        print(f"Warning: Storage directory not found: {storage_path}")
+except Exception as e:
+    print(f" Warning: Failed to mount storage: {e}")
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
@@ -73,9 +94,16 @@ async def health_check():
     return {"status": "healthy", "message": "FOG API is running"}
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
+    try:
+        uvicorn.run(
+            "main:app",
+            host="0.0.0.0",
+            port=8000,
+            reload=True,
+            log_level="info"
+        )
+    except Exception as e:
+        print(f"Server failed to start: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
