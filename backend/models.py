@@ -76,7 +76,7 @@ class Event(Base):
     max_attendees = Column(Integer, nullable=True)
     current_attendees = Column(Integer, default=0)
     featured = Column(Boolean, default=False)
-    created_by = Column(Integer, ForeignKey("users.id"))
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -99,7 +99,7 @@ class Podcast(Base):
     tags = Column(String, nullable=True)  # Comma-separated tags
     audio_url = Column(String, nullable=True)
     transcript = Column(Text, nullable=True)
-    created_by = Column(Integer, ForeignKey("users.id"))
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -127,7 +127,7 @@ class GeniusAcademyCourse(Base):
     curriculum = Column(Text, nullable=True)  # JSON string or newline-separated
     features = Column(Text, nullable=True)  # JSON string or newline-separated
     whatsapp_number = Column(String, nullable=True)  # For enrollment
-    created_by = Column(Integer, ForeignKey("users.id"))
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -143,7 +143,7 @@ class Devotional(Base):
     read_time = Column(String, nullable=True)  # e.g., "5 min read"
     date = Column(DateTime(timezone=True), nullable=False)
     featured = Column(Boolean, default=False)
-    created_by = Column(Integer, ForeignKey("users.id"))
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -157,6 +157,6 @@ class Announcement(Base):
     date = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True), nullable=True)  # Optional expiration
     is_active = Column(Boolean, default=True)
-    created_by = Column(Integer, ForeignKey("users.id"))
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

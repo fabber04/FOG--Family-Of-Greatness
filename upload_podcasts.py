@@ -13,12 +13,13 @@ import requests
 from pathlib import Path
 
 # Configuration
-API_BASE_URL = "http://localhost:8000"
+# Use Railway URL for production, or set via environment variable
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://fog-family-of-greatness-production.up.railway.app")
 PODCASTS_FOLDER = Path(__file__).parent / "BEYOND THE DATING GAME-20251209T191233Z-1-001" / "BEYOND THE DATING GAME"
 IMAGES_FOLDER = Path(__file__).parent / "public" / "images" / "podcasts"
 
-# Get auth token from environment or command line
-AUTH_TOKEN = os.environ.get("AUTH_TOKEN") or (sys.argv[1] if len(sys.argv) > 1 else None)
+# Get auth token from environment or command line (optional now - auth disabled temporarily)
+AUTH_TOKEN = os.environ.get("AUTH_TOKEN") or (sys.argv[1] if len(sys.argv) > 1 else None) or ""
 
 # Map audio files to podcast metadata
 PODCAST_METADATA = [
@@ -238,7 +239,9 @@ PODCAST_METADATA = [
 def upload_audio_file(file_path, token):
     """Upload audio file to backend."""
     url = f"{API_BASE_URL}/api/podcasts/upload-audio"
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     
     with open(file_path, "rb") as f:
         files = {"file": (os.path.basename(file_path), f, "audio/m4a")}
@@ -254,7 +257,9 @@ def upload_audio_file(file_path, token):
 def upload_cover_image(image_path, token):
     """Upload cover image to backend."""
     url = f"{API_BASE_URL}/api/podcasts/upload-cover"
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     
     with open(image_path, "rb") as f:
         files = {"file": (os.path.basename(image_path), f, "image/jpeg")}
@@ -270,10 +275,9 @@ def upload_cover_image(image_path, token):
 def create_podcast(podcast_data, token):
     """Create podcast entry in backend."""
     url = f"{API_BASE_URL}/api/podcasts/"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     
     response = requests.post(url, headers=headers, json=podcast_data)
     
@@ -285,18 +289,10 @@ def create_podcast(podcast_data, token):
 
 
 def main():
+    # Auth token is now optional (temporarily disabled on backend)
     if not AUTH_TOKEN:
-        print("❌ Error: AUTH_TOKEN is required!")
-        print("\nUsage:")
-        print("  export AUTH_TOKEN='your_token_here'")
-        print("  python upload_podcasts.py")
-        print("\nOr:")
-        print("  python upload_podcasts.py your_token_here")
-        print("\nTo get your token:")
-        print("  1. Log in to the admin dashboard")
-        print("  2. Open browser DevTools > Application > Local Storage")
-        print("  3. Find 'fog_user' and copy the 'backendToken' value")
-        sys.exit(1)
+        print("⚠️  Note: Uploading without authentication (temporarily enabled)")
+        print("   This is for content upload only. Auth will be re-enabled later.\n")
     
     print("🚀 Starting podcast upload process...\n")
     
