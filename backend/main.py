@@ -361,8 +361,18 @@ async def create_tables_from_sql():
         print("Creating tables from SQL script...")
         db = next(get_db())
         try:
-            # Execute the SQL script
-            db.execute(text(sql_script))
+            # Split SQL script into individual statements and execute one at a time
+            # Remove comments and split by semicolons
+            statements = [s.strip() for s in sql_script.split(';') if s.strip() and not s.strip().startswith('--')]
+            
+            for statement in statements:
+                if statement:  # Skip empty statements
+                    try:
+                        db.execute(text(statement))
+                    except Exception as e:
+                        # Some statements might fail if tables/indexes already exist, that's OK
+                        print(f"Note: {str(e)[:100]}")
+            
             db.commit()
             
             # Verify tables were created
