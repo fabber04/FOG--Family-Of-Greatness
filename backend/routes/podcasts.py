@@ -120,11 +120,7 @@ async def create_podcast(
         # Return detailed error in response
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to create podcast",
-                "message": error_detail,
-                "traceback": traceback_str
-            }
+            detail=f"Failed to create podcast: {error_detail}. Check server logs for full traceback."
         )
 
 @router.put("/{podcast_id}", response_model=PodcastSchema)
