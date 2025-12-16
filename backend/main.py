@@ -157,14 +157,19 @@ async def init_database():
         return {
             "status": "success",
             "message": "Database tables created successfully",
-            "tables": tables
+            "tables": tables,
+            "count": len(tables)
         }
     except Exception as e:
         import traceback
+        error_msg = str(e)
+        tb = traceback.format_exc()
+        print(f"Error in init-db: {error_msg}")
+        print(tb)
         return {
             "status": "error",
-            "message": f"Failed to create tables: {str(e)}",
-            "traceback": traceback.format_exc()
+            "message": f"Failed to create tables: {error_msg}",
+            "traceback": tb
         }
 
 if __name__ == "__main__":
