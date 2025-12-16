@@ -139,6 +139,28 @@ async def test_database(db: Session = Depends(get_db)):
             "database_url": os.getenv("DATABASE_URL", "not set")[:50] + "..." if os.getenv("DATABASE_URL") else "not set"
         }
 
+@app.post("/api/init-db")
+async def init_database():
+    """Manually initialize database tables."""
+    try:
+        print("Manually initializing database tables...")
+        Base.metadata.create_all(bind=engine)
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        return {
+            "status": "success",
+            "message": "Database tables created successfully",
+            "tables": tables
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "message": f"Failed to create tables: {str(e)}",
+            "traceback": traceback.format_exc()
+        }
+
 if __name__ == "__main__":
     try:
         # Get port from environment (Railway provides this) or default to 8000
