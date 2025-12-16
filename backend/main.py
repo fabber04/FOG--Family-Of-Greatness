@@ -176,7 +176,6 @@ async def init_database():
 async def view_all_tables(db: Session = Depends(get_db)):
     """View all tables and their data."""
     from sqlalchemy import inspect, text
-    from models import Podcast, User, LibraryItem, PrayerRequest, Event, GeniusAcademyCourse, Devotional, Announcement
     
     try:
         inspector = inspect(engine)
