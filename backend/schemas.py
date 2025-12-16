@@ -168,6 +168,7 @@ class PodcastBase(BaseModel):
     tags: Optional[str] = None
     audio_url: Optional[str] = None
     transcript: Optional[str] = None
+    cover: Optional[str] = None
 
 class PodcastCreate(PodcastBase):
     pass
@@ -184,6 +185,7 @@ class PodcastUpdate(BaseModel):
     tags: Optional[str] = None
     audio_url: Optional[str] = None
     transcript: Optional[str] = None
+    cover: Optional[str] = None
 
 class Podcast(PodcastBase):
     id: int
@@ -191,7 +193,7 @@ class Podcast(PodcastBase):
     publish_date: datetime
     rating: float
     plays: int
-    created_by: int
+    created_by: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     
