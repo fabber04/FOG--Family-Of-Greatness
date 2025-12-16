@@ -282,10 +282,17 @@ def create_podcast(podcast_data, token):
     response = requests.post(url, headers=headers, json=podcast_data)
     
     if not response.ok:
-        error = response.json().get("detail", response.text)
+        # Try to get error message
+        try:
+            error = response.json().get("detail", response.text)
+        except:
+            error = response.text or f"HTTP {response.status_code}"
         raise Exception(f"Failed to create podcast: {error}")
     
-    return response.json()
+    try:
+        return response.json()
+    except:
+        raise Exception(f"Invalid JSON response: {response.text}")
 
 
 def main():

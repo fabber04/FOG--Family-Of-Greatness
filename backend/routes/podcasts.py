@@ -96,16 +96,28 @@ async def create_podcast(
     db: Session = Depends(get_db)
 ):
     """Create a new podcast (admin only)."""
-    db_podcast = Podcast(
-        **podcast_data.dict(),
-        created_by=None  # Temporary: disabled auth, no user required
-    )
-    
-    db.add(db_podcast)
-    db.commit()
-    db.refresh(db_podcast)
-    
-    return db_podcast
+    try:
+        db_podcast = Podcast(
+            **podcast_data.dict(),
+            created_by=None  # Temporary: disabled auth, no user required
+        )
+        
+        db.add(db_podcast)
+        db.commit()
+        db.refresh(db_podcast)
+        
+        return db_podcast
+    except Exception as e:
+        db.rollback()
+        import traceback
+        error_detail = str(e)
+        traceback_str = traceback.format_exc()
+        print(f"Error creating podcast: {error_detail}")
+        print(f"Traceback: {traceback_str}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create podcast: {error_detail}"
+        )
 
 @router.put("/{podcast_id}", response_model=PodcastSchema)
 async def update_podcast(
