@@ -8,6 +8,7 @@ import os
 
 from database import engine, get_db
 from models import Base
+from sqlalchemy.orm import Session
 from routes import auth, library, users, prayer, events, podcasts, courses, devotionals, announcements
 from utils.auth import get_current_user
 from file_server import initialize_storage, STORAGE_DIR
@@ -16,7 +17,15 @@ from file_server import initialize_storage, STORAGE_DIR
 load_dotenv()
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+try:
+    print("Initializing database tables...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database tables created successfully")
+except Exception as e:
+    print(f"❌ Error creating database tables: {e}")
+    import traceback
+    traceback.print_exc()
+    # Don't fail startup, but log the error
 
 # Initialize file storage
 try:
@@ -102,15 +111,23 @@ async def health_check():
 @app.get("/api/test-db")
 async def test_database(db: Session = Depends(get_db)):
     """Test database connection and table existence."""
+    from sqlalchemy import inspect
+    from models import Podcast
+    
     try:
-        from models import Podcast
-        # Try to query the podcasts table
+        # Test connection and get table names
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        
+        # Try to query
         count = db.query(Podcast).count()
         return {
             "status": "success",
             "message": "Database connection successful",
             "podcasts_count": count,
-            "tables_exist": True
+            "tables_exist": True,
+            "tables": tables,
+            "database_url": os.getenv("DATABASE_URL", "not set")[:50] + "..." if os.getenv("DATABASE_URL") else "not set"
         }
     except Exception as e:
         import traceback
@@ -118,7 +135,8 @@ async def test_database(db: Session = Depends(get_db)):
             "status": "error",
             "message": f"Database error: {str(e)}",
             "tables_exist": False,
-            "traceback": traceback.format_exc()
+            "traceback": traceback.format_exc(),
+            "database_url": os.getenv("DATABASE_URL", "not set")[:50] + "..." if os.getenv("DATABASE_URL") else "not set"
         }
 
 if __name__ == "__main__":
