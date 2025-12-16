@@ -21,6 +21,12 @@ try:
     print("Initializing database tables...")
     Base.metadata.create_all(bind=engine)
     print("✅ Database tables created successfully")
+    
+    # Verify tables were created
+    from sqlalchemy import inspect
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+    print(f"   Created {len(tables)} tables: {', '.join(sorted(tables))}")
 except Exception as e:
     print(f"❌ Error creating database tables: {e}")
     import traceback
