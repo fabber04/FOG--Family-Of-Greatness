@@ -172,6 +172,67 @@ async def init_database():
             "traceback": tb
         }
 
+@app.get("/api/view-tables")
+async def view_all_tables(db: Session = Depends(get_db)):
+    """View all tables and their data."""
+    from sqlalchemy import inspect, text
+    from models import Podcast, User, LibraryItem, PrayerRequest, Event, GeniusAcademyCourse, Devotional, Announcement
+    
+    try:
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        
+        result = {}
+        
+        for table in sorted(tables):
+            # Get row count
+            count_result = db.execute(text(f"SELECT COUNT(*) FROM {table}"))
+            count = count_result.scalar()
+            
+            # Get column names
+            columns = [col['name'] for col in inspector.get_columns(table)]
+            
+            # Get sample data (first 10 rows)
+            if count > 0:
+                data_result = db.execute(text(f"SELECT * FROM {table} LIMIT 10"))
+                rows = data_result.fetchall()
+                
+                # Convert rows to dictionaries
+                table_data = []
+                for row in rows:
+                    row_dict = {}
+                    for col_name, value in zip(columns, row):
+                        # Convert values to JSON-serializable format
+                        if value is None:
+                            row_dict[col_name] = None
+                        elif isinstance(value, (str, int, float, bool)):
+                            row_dict[col_name] = value
+                        else:
+                            row_dict[col_name] = str(value)
+                    table_data.append(row_dict)
+            else:
+                table_data = []
+            
+            result[table] = {
+                "columns": columns,
+                "row_count": count,
+                "sample_data": table_data,
+                "showing": min(10, count) if count > 0 else 0
+            }
+        
+        return {
+            "status": "success",
+            "tables": result,
+            "total_tables": len(tables)
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "message": f"Error viewing tables: {str(e)}",
+            "traceback": traceback.format_exc()
+        }
+
 if __name__ == "__main__":
     try:
         # Get port from environment (Railway provides this) or default to 8000
