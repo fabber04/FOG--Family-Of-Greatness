@@ -32,14 +32,20 @@ app = FastAPI(
 )
 
 # CORS middleware
+# Get allowed origins from environment or use defaults
+cors_origins = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else []
+default_origins = [
+    "http://localhost:3000", 
+    "http://localhost:3001",
+    "http://localhost:3002",  # Additional React dev server port
+    "https://fabber04.github.io"  # GitHub Pages deployment
+]
+# Combine default origins with environment origins, filter out empty strings
+allow_origins = default_origins + [origin.strip() for origin in cors_origins if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000", 
-        "http://localhost:3001",
-        "http://localhost:3002",  # Additional React dev server port
-        "https://fabber04.github.io"  # GitHub Pages deployment
-    ],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -93,13 +99,40 @@ async def root():
 async def health_check():
     return {"status": "healthy", "message": "FOG API is running"}
 
+@app.get("/api/test-db")
+async def test_database(db: Session = Depends(get_db)):
+    """Test database connection and table existence."""
+    try:
+        from models import Podcast
+        # Try to query the podcasts table
+        count = db.query(Podcast).count()
+        return {
+            "status": "success",
+            "message": "Database connection successful",
+            "podcasts_count": count,
+            "tables_exist": True
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "message": f"Database error: {str(e)}",
+            "tables_exist": False,
+            "traceback": traceback.format_exc()
+        }
+
 if __name__ == "__main__":
     try:
+        # Get port from environment (Railway provides this) or default to 8000
+        port = int(os.getenv("PORT", 8000))
+        # Only enable reload in development
+        reload = os.getenv("ENVIRONMENT", "production") != "production"
+        
         uvicorn.run(
             "main:app",
             host="0.0.0.0",
-            port=8000,
-            reload=True,
+            port=port,
+            reload=reload,
             log_level="info"
         )
     except Exception as e:
