@@ -72,8 +72,14 @@ async def get_podcasts(
     # Order by publish date (newest first)
     query = query.order_by(Podcast.publish_date.desc())
     
-    podcasts = query.offset(skip).limit(limit).all()
-    return podcasts
+    try:
+        podcasts = query.offset(skip).limit(limit).all()
+        return podcasts
+    except Exception as e:
+        import traceback
+        print(f"Error in get_podcasts: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error fetching podcasts: {str(e)}")
 
 @router.get("/{podcast_id}", response_model=PodcastSchema)
 async def get_podcast(podcast_id: int, db: Session = Depends(get_db)):
