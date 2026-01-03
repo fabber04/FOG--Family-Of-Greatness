@@ -33,7 +33,7 @@ const GeniusAcademy = () => {
   const courses = [
     {
       id: 1,
-      title: 'One Level 01 Relationship Coaching Program',
+      title: 'Level 01: Relationship Coaching Program',
       instructor: 'Coach Noble Masvingise',
       category: 'relationships',
       level: 'beginner',

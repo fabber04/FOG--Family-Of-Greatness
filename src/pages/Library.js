@@ -65,7 +65,7 @@ const Library = () => {
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200">
               <div className="text-center">
                 <Star className="mx-auto h-12 w-12 text-yellow-600 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily Quotes</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Quotes</h3>
                 <p className="text-gray-600 mb-4">Get inspired with daily wisdom quotes and scripture</p>
                 <button className="text-primary-600 font-medium hover:text-primary-700">
                   View Quotes →
@@ -73,14 +73,14 @@ const Library = () => {
               </div>
             </div>
 
-            {/* Devotionals Section */}
+            {/* Wisdom For Youth Blogs Section */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200">
               <div className="text-center">
                 <BookOpen className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily Devotionals</h3>
-                <p className="text-gray-600 mb-4">Start your day with our daily devotional readings</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">WISDOM FOR YOUTH BLOGS</h3>
+                <p className="text-gray-600 mb-4">Inspiring blogs and articles designed specifically for youth spiritual growth</p>
                 <button className="text-primary-600 font-medium hover:text-primary-700">
-                  Read Devotionals →
+                  Read Blogs →
                 </button>
               </div>
             </div>

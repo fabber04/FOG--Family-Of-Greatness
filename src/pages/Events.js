@@ -8,10 +8,13 @@ import {
   Plus,
   X
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+// Removed useAuth for beta launch - no admin features visible
+// import { useAuth } from '../contexts/AuthContext';
 
 const Events = () => {
-  const { isAdmin } = useAuth();
+  // Disabled admin features for beta launch
+  // const { isAdmin } = useAuth();
+  const isAdmin = () => false; // Always return false for beta
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);

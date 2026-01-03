@@ -14,6 +14,7 @@ class User(Base):
     firebase_uid = Column(String, unique=True, index=True, nullable=True)  # Firebase user ID
     phone = Column(String, nullable=True)
     location = Column(String, nullable=True)
+    grade = Column(String, nullable=True)  # Grade/Level: 9th Grade, 10th Grade, College, etc.
     role = Column(String, nullable=True)  # Member, Admin, Pastor, Youth Leader
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)

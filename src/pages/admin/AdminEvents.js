@@ -6,7 +6,9 @@ import {
   X,
   Save,
   Upload,
-  Loader2
+  Loader2,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { eventService } from '../../services/apiService';
 import toast from 'react-hot-toast';
@@ -15,6 +17,7 @@ const AdminEvents = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
   const [previewEvent, setPreviewEvent] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -54,8 +57,13 @@ const AdminEvents = () => {
         max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null
       };
 
-      await eventService.createEvent(eventData);
-      toast.success('Event created successfully!');
+      if (editingEvent) {
+        await eventService.updateEvent(editingEvent.id, eventData);
+        toast.success('Event updated successfully!');
+      } else {
+        await eventService.createEvent(eventData);
+        toast.success('Event created successfully!');
+      }
 
       setShowForm(false);
       resetForm();
@@ -63,6 +71,37 @@ const AdminEvents = () => {
     } catch (error) {
       console.error('Error saving event:', error);
       toast.error(error.message || 'Failed to save event');
+    }
+  };
+
+  const handleEdit = (event) => {
+    setEditingEvent(event);
+    setFormData({
+      title: event.title || '',
+      description: event.description || '',
+      category: event.category || 'prayer',
+      date: event.date ? new Date(event.date).toISOString().split('T')[0] : '',
+      time: event.time || '',
+      location: event.location || '',
+      max_attendees: event.max_attendees || '',
+      featured: event.featured || false,
+      image: event.image || null
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (eventId) => {
+    if (!window.confirm('Are you sure you want to delete this event?')) {
+      return;
+    }
+
+    try {
+      await eventService.deleteEvent(eventId);
+      toast.success('Event deleted successfully!');
+      loadEvents();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Failed to delete event');
     }
   };
 
@@ -82,6 +121,7 @@ const AdminEvents = () => {
       featured: false,
       image: null
     });
+    setEditingEvent(null);
   };
 
   const handleImageUpload = async (e) => {
@@ -110,64 +150,87 @@ const AdminEvents = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header with Add Button */}
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Events</h1>
-            <p className="mt-2 text-gray-600">Upload and preview events</p>
+            <h1 className="text-2xl font-bold text-gray-900">Manage Events</h1>
+            <p className="mt-1 text-sm text-gray-600">
+              {events.length} {events.length === 1 ? 'event' : 'events'} uploaded
+            </p>
           </div>
           <button
             onClick={() => {
               resetForm();
               setShowForm(true);
             }}
-            className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm"
           >
             <Plus className="w-5 h-5 mr-2" />
-            Upload Event
+            Add New Event
           </button>
         </div>
 
-        {/* Events Preview Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
-            <div key={event.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              {event.image && (
-                <img
-                  src={`http://localhost:8000/uploads/events/${event.image}`}
-                  alt={event.title}
-                  className="w-full h-48 object-cover"
-                />
-              )}
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
-                  {event.featured && (
-                    <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">Featured</span>
-                  )}
+        {/* Uploaded Content - Events List */}
+        {events.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {events.map((event) => (
+              <div key={event.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                {event.image && (
+                  <img
+                    src={`http://localhost:8000/uploads/events/${event.image}`}
+                    alt={event.title}
+                    className="w-full h-40 object-cover"
+                  />
+                )}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-base font-semibold text-gray-900 line-clamp-2 flex-1">{event.title}</h3>
+                    {event.featured && (
+                      <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded ml-2 flex-shrink-0">Featured</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 mb-2 line-clamp-2">{event.description}</p>
+                  <div className="text-xs text-gray-500 mb-3">
+                    <div>{new Date(event.date).toLocaleDateString()}</div>
+                    {event.time && <div>{event.time}</div>}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(event)}
+                      className="flex-1 flex items-center justify-center px-2 py-1.5 text-xs bg-primary-50 text-primary-600 rounded hover:bg-primary-100"
+                      title="Edit"
+                    >
+                      <Edit className="w-3.5 h-3.5 mr-1" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(event.id)}
+                      className="px-2 py-1.5 text-xs bg-red-50 text-red-600 rounded hover:bg-red-100"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{event.description}</p>
-                <div className="text-xs text-gray-500 mb-3">
-                  <div>{new Date(event.date).toLocaleDateString()}</div>
-                  {event.time && <div>{event.time}</div>}
-                </div>
-                <button
-                  onClick={() => handlePreview(event)}
-                  className="w-full flex items-center justify-center px-3 py-2 text-sm bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100"
-                >
-                  <Eye className="w-4 h-4 mr-1" />
-                  Preview
-                </button>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {events.length === 0 && (
-          <div className="text-center py-12">
-            <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No events yet</h3>
-            <p className="mt-1 text-sm text-gray-500">Upload your first event to get started.</p>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
+            <Calendar className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No events uploaded yet</h3>
+            <p className="text-sm text-gray-500 mb-6">Get started by uploading your first event</p>
+            <button
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add First Event
+            </button>
           </div>
         )}
 
@@ -176,7 +239,7 @@ const AdminEvents = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="text-xl font-bold">Upload Event</h2>
+                <h2 className="text-xl font-bold">{editingEvent ? 'Edit Event' : 'Upload Event'}</h2>
                 <button
                   onClick={() => {
                     setShowForm(false);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { 
   User, 
   BookOpen, 
@@ -21,6 +22,11 @@ import { useAuth } from '../contexts/AuthContext';
 // import { userService } from '../services/firebaseService'; // Temporarily disabled
 
 const Profile = () => {
+  // Beta launch: Account ownership not shipping - redirect to home
+  return <Navigate to="/" replace />;
+  
+  // Below code is disabled for beta launch
+  /*
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('saved');
   const [isEditing, setIsEditing] = useState(false);

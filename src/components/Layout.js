@@ -1,29 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { 
   Home, 
   BookOpen, 
   Calendar, 
-  User, 
   Menu, 
   X,
   Bell,
   Search,
-  Users,
   MessageCircle,
-  Camera,
-  ShoppingBag,
-
   Library,
   Headphones,
   GraduationCap,
-  HeartHandshake,
-  FileText,
-  LogOut,
-  Settings
+  HeartHandshake
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -77,21 +67,16 @@ const Layout = ({ children }) => {
   const flyingHeartRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, isAdmin, logout } = useAuth();
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
-    ...(isAdmin() ? [
-      { name: 'Admin', href: '/admin', icon: Settings },
-      { name: 'Members', href: '/members', icon: Users }
-    ] : []),
     { name: 'Library', href: '/library', icon: Library },
-    { name: 'Podcasts', href: '/podcasts', icon: Headphones },
+    { name: 'Podcasts', href: '/podcasts', icon: Headphones }, // Public podcasts page
     { name: 'Events', href: '/events', icon: Calendar },
     { name: 'Genius Academy', href: '/masterclass', icon: GraduationCap },
     { name: 'Counseling', href: '/counseling', icon: HeartHandshake },
     { name: 'Relationship Devotionals', href: '/devotionals', icon: BookOpen },
-    { name: 'Profile', href: '/profile', icon: User },
+    { name: 'Prayer Requests', href: '/prayer-requests', icon: MessageCircle }
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -110,18 +95,6 @@ const Layout = ({ children }) => {
 
   // Mock notifications data
   const unreadCount = notifications.filter(n => !n.read).length;
-
-  // Use authenticated user from context
-  const user = currentUser || {
-    name: 'Guest User',
-    email: 'guest@example.com'
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    toast.success('Logged out successfully');
-  };
 
   // Close notifications dropdown when clicking outside
   useEffect(() => {
@@ -391,29 +364,6 @@ const Layout = ({ children }) => {
                 )}
               </div>
 
-              {/* User menu */}
-              <div className="relative group">
-                <button 
-                  onClick={() => navigate('/profile')}
-                  className="flex items-center space-x-3 lg:space-x-4 p-2 lg:p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <div className="w-8 h-8 lg:w-12 lg:h-12 xl:w-14 xl:h-14 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-medium text-sm lg:text-lg xl:text-xl">{user.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                  <span className="hidden sm:block text-sm lg:text-lg xl:text-xl font-semibold text-gray-900">{user.name}</span>
-                </button>
-                
-                {/* User dropdown menu */}
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </header>

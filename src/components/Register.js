@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, User, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Register = () => {
+  // Beta launch: Account ownership not shipping - redirect to home
+  return <Navigate to="/" replace />;
+  
+  // Below code is disabled for beta launch
+  /*
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',

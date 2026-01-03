@@ -122,6 +122,10 @@ fog_platform.db
 # Upload directories
 uploads/
 
+# File server storage (keep structure, ignore files)
+storage/files/**/*
+!storage/files/.gitkeep
+
 # Generated files
 dataconnect-generated/
 

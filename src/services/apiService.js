@@ -3,7 +3,17 @@
 
 import { auth } from '../firebase';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Pick the right API base depending on environment.
+// - REACT_APP_API_URL: explicit override (build time)
+// - localhost/127.0.0.1: local dev
+// - otherwise: deployed Railway API
+const DEFAULT_PROD_API = 'https://fog-family-of-greatness-production.up.railway.app';
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
+  (typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:8000'
+      : DEFAULT_PROD_API);
 
 // Helper function to get auth token
 const getAuthToken = async () => {
@@ -221,6 +231,7 @@ export const syncFirebaseUser = async (firebaseToken, userData = {}) => {
         'Authorization': `Bearer ${firebaseToken}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(userData),
     });
 
     if (!response.ok) {

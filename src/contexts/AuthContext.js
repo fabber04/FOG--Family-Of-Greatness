@@ -71,6 +71,7 @@ export const AuthProvider = ({ children }) => {
           full_name: fullName,
           phone: additionalData.phone,
           location: additionalData.location,
+          grade: additionalData.grade,  // Include grade in backend sync
           role: additionalData.role || 'Member',
           is_admin: additionalData.role === 'admin'
         });

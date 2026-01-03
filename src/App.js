@@ -1,12 +1,9 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { LibraryProvider } from './contexts/LibraryContext';
-import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import Login from './components/Login';
-import Register from './components/Register';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import Library from './pages/Library';
@@ -16,9 +13,13 @@ import Events from './pages/Events';
 import Counseling from './pages/Counseling';
 import Devotionals from './pages/Devotionals';
 import PrayerRequests from './pages/PrayerRequests';
-import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminEvents from './pages/admin/AdminEvents';
+import AdminPodcasts from './pages/admin/AdminPodcasts';
+import AdminLibrary from './pages/admin/AdminLibrary';
+import AdminGeniusAcademy from './pages/admin/AdminGeniusAcademy';
+import AdminCounseling from './pages/admin/AdminCounseling';
+import AdminDevotionals from './pages/admin/AdminDevotionals';
 import './App.css';
 
 function App() {
@@ -28,92 +29,94 @@ function App() {
         <Router>
           <div className="App">
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            {/* Redirect login/register/profile to home for beta launch */}
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/register" element={<Navigate to="/" replace />} />
+            <Route path="/profile" element={<Navigate to="/" replace />} />
+            
             <Route path="/" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Dashboard />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
             } />
 
             <Route path="/members" element={
-              <ProtectedRoute requireAdmin={true}>
-                <Layout>
-                  <Members />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <Members />
+              </Layout>
             } />
             <Route path="/library" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Library />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <Library />
+              </Layout>
             } />
+            {/* Public routes - must come before admin routes */}
             <Route path="/podcasts" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Podcasts />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <Podcasts />
+              </Layout>
             } />
             <Route path="/masterclass" element={
-              <ProtectedRoute>
-                <Layout>
-                  <GeniusAcademy />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <GeniusAcademy />
+              </Layout>
             } />
             <Route path="/events" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Events />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <Events />
+              </Layout>
             } />
             <Route path="/counseling" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Counseling />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <Counseling />
+              </Layout>
             } />
             <Route path="/devotionals" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Devotionals />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <Devotionals />
+              </Layout>
             } />
             <Route path="/prayer-requests" element={
-              <ProtectedRoute>
-                <Layout>
-                  <PrayerRequests />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <PrayerRequests />
+              </Layout>
             } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Profile />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            
+            {/* Admin routes - must come after public routes */}
             <Route path="/admin" element={
-              <ProtectedRoute requireAdmin={true}>
-                <Layout>
-                  <AdminDashboard />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <AdminDashboard />
+              </Layout>
             } />
             <Route path="/admin/events" element={
-              <ProtectedRoute requireAdmin={true}>
-                <Layout>
-                  <AdminEvents />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <AdminEvents />
+              </Layout>
+            } />
+            <Route path="/admin/podcasts" element={
+              <Layout>
+                <AdminPodcasts />
+              </Layout>
+            } />
+            <Route path="/admin/library" element={
+              <Layout>
+                <AdminLibrary />
+              </Layout>
+            } />
+            <Route path="/admin/masterclass" element={
+              <Layout>
+                <AdminGeniusAcademy />
+              </Layout>
+            } />
+            <Route path="/admin/counseling" element={
+              <Layout>
+                <AdminCounseling />
+              </Layout>
+            } />
+            <Route path="/admin/devotionals" element={
+              <Layout>
+                <AdminDevotionals />
+              </Layout>
             } />
           </Routes>
           <Toaster 

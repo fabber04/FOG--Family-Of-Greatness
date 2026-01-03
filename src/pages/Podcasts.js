@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation, Navigate } from 'react-router-dom';
 import { 
   Headphones, 
   Search, 
@@ -22,13 +23,25 @@ import {
   BookOpen,
   Users,
   GraduationCap,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react';
 import AudioPlayer from '../components/AudioPlayer';
 import { isGoogleDriveLink } from '../utils/googleDrive';
 import { podcastService } from '../services/apiService';
 
 const Podcasts = () => {
+  const location = useLocation();
+  
+  // Ensure this is the public podcasts page, not admin
+  useEffect(() => {
+    // Redirect if somehow on admin route
+    if (location.pathname && location.pathname.includes('/admin/podcasts')) {
+      console.warn('Warning: Public Podcasts component loaded but URL suggests admin route');
+      // This shouldn't happen, but safeguard just in case
+    }
+  }, [location.pathname]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -39,16 +52,82 @@ const Podcasts = () => {
   const [playingPodcast, setPlayingPodcast] = useState(null);
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState(null); // Track selected category for episode list view
+  const [lastPlayedPodcastId, setLastPlayedPodcastId] = useState(null); // Track last played podcast
+
+  // Use the same API base URL logic as apiService.js
+  const DEFAULT_PROD_API = 'https://fog-family-of-greatness-production.up.railway.app';
+  const API_BASE = useMemo(() => {
+    if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
+    if (
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ) {
+      return 'http://localhost:8000';
+    }
+    return DEFAULT_PROD_API;
+  }, []);
+
+  // Normalize backend category values to the fixed originals
+  const CATEGORY_ALIASES = {
+    'wisdom-for-teenagers': 'teens',
+    'wisdom for teenagers': 'teens',
+  };
+  const normalizeCategory = (value = '') => CATEGORY_ALIASES[value] || value;
+
+  // Extract episode number from title (e.g., "Ep 01", "Episode 3", "Esp.4")
+  const getEpisodeNumber = (title = '') => {
+    const match = title.match(/(?:ep|eps|esp|episode)[\s.-]*#?\s*(\d+)/i);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
+  // Sort episodes so earliest numbers (or dates) appear first
+  const sortEpisodes = useCallback((list = []) => {
+    return [...list].sort((a, b) => {
+      const aNum = getEpisodeNumber(a.title);
+      const bNum = getEpisodeNumber(b.title);
+
+      if (aNum !== null && bNum !== null && aNum !== bNum) return aNum - bNum;
+      if (aNum !== null && bNum === null) return -1;
+      if (aNum === null && bNum !== null) return 1;
+
+      const aDate = new Date(a.publishDate || a.created_at || 0);
+      const bDate = new Date(b.publishDate || b.created_at || 0);
+      if (!isNaN(aDate) && !isNaN(bDate) && aDate.getTime() !== bDate.getTime()) {
+        return aDate - bDate;
+      }
+
+      return (a.id || 0) - (b.id || 0);
+    });
+  }, []);
+
+  // Load last played podcast from localStorage
+  useEffect(() => {
+    const lastPlayed = localStorage.getItem('fog_last_played_podcast_id');
+    if (lastPlayed) {
+      setLastPlayedPodcastId(parseInt(lastPlayed, 10));
+    }
+  }, []);
 
   // Fetch podcasts from API
   useEffect(() => {
     const loadPodcasts = async () => {
       try {
         setLoading(true);
+        console.log('Loading podcasts from API...', API_BASE);
         const data = await podcastService.getPodcasts();
+        console.log('Podcasts loaded:', data.length, 'items');
+        
+        // Ensure data is an array
+        if (!Array.isArray(data)) {
+          console.error('Podcasts data is not an array:', data);
+          setPodcasts([]);
+          return;
+        }
+        
         // Map API response to component format
-        const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
         const mappedPodcasts = data.map(podcast => {
+          const normalizedCategory = normalizeCategory(podcast.category);
           // Helper to build full URL
           const buildUrl = (url) => {
             if (!url || url === '#') return '#';
@@ -61,7 +140,7 @@ const Podcasts = () => {
             title: podcast.title,
             host: podcast.host,
             type: podcast.type,
-            category: podcast.category,
+            category: normalizedCategory,
             description: podcast.description,
             cover: buildUrl(podcast.cover),
             duration: podcast.duration || 'N/A',
@@ -75,16 +154,9 @@ const Podcasts = () => {
             transcript: podcast.transcript || ''
           };
         });
-        // Sort podcasts by episode number (extract number from title)
-        const sortedPodcasts = mappedPodcasts.sort((a, b) => {
-          // Extract episode number from title (e.g., "Eps 01" -> 1, "Esp 02" -> 2)
-          const getEpisodeNumber = (title) => {
-            const match = title.match(/(?:Eps?|Esp)\s*(\d+)/i);
-            return match ? parseInt(match[1], 10) : 9999; // Put non-matching at end
-          };
-          return getEpisodeNumber(a.title) - getEpisodeNumber(b.title);
-        });
-        
+        // Sort so Episode 1 starts at the top
+        const sortedPodcasts = sortEpisodes(mappedPodcasts);
+        console.log('Podcasts sorted:', sortedPodcasts.length, 'items');
         setPodcasts(sortedPodcasts);
       } catch (error) {
         console.error('Error loading podcasts:', error);
@@ -96,7 +168,7 @@ const Podcasts = () => {
     };
 
     loadPodcasts();
-  }, []);
+  }, [API_BASE, sortEpisodes]);
 
   // Mock podcasts data - can include Google Drive links in audioUrl (fallback if API fails)
   const mockPodcasts = [
@@ -264,37 +336,75 @@ const Podcasts = () => {
     }
   ];
 
-  const categories = [
-    { id: 'all', name: 'All Categories', count: podcasts.length },
-    { id: 'spiritual-development', name: 'Spiritual Development', count: podcasts.filter(podcast => podcast.category === 'spiritual-development').length },
-    { id: 'relationships', name: 'Relationships', count: podcasts.filter(podcast => podcast.category === 'relationships').length },
-    { id: 'personal-development', name: 'Personal Development', count: podcasts.filter(podcast => podcast.category === 'personal-development').length },
-    { id: 'wisdom-keys', name: 'Wisdom Keys', count: podcasts.filter(podcast => podcast.category === 'wisdom-keys').length },
-    { id: 'beyond-dating-game', name: 'Beyond The Dating Game', count: podcasts.filter(podcast => podcast.category === 'beyond-dating-game').length },
-    { id: 'wisdom-for-ladies', name: 'Wisdom For Ladies', count: podcasts.filter(podcast => podcast.category === 'wisdom-for-ladies').length },
-    { id: 'teens', name: 'Teens Podcasts', count: podcasts.filter(podcast => podcast.category === 'teens').length },
-    { id: 'university-students', name: 'University Students', count: podcasts.filter(podcast => podcast.category === 'university-students').length }
+  // Original fixed categories - preserve these exactly
+  const ORIGINAL_CATEGORIES = [
+    { id: 'spiritual-development', name: 'Spiritual Development' },
+    { id: 'relationships', name: 'Relationships' },
+    { id: 'personal-development', name: 'Personal Development' },
+    { id: 'wisdom-keys', name: 'Wisdom Keys' },
+    { id: 'beyond-dating-game', name: 'Beyond The Dating Game' },
+    { id: 'wisdom-for-ladies', name: 'Wisdom For Ladies' },
+    { id: 'teens', name: 'Teens Podcasts' },
+    { id: 'university-students', name: 'University Students' }
   ];
 
-  const types = [
-    { id: 'all', name: 'All Types', count: podcasts.length },
-    { id: 'episode', name: 'Episodes', count: podcasts.filter(podcast => podcast.type === 'episode').length },
-    { id: 'live', name: 'Live', count: podcasts.filter(podcast => podcast.type === 'live').length },
-    { id: 'series', name: 'Series', count: podcasts.filter(podcast => podcast.type === 'series').length }
-  ];
+  // Group podcasts by original categories only
+  const getCategoryInfo = () => {
+    const categoryMap = {};
+    
+    // Initialize all original categories
+    ORIGINAL_CATEGORIES.forEach(cat => {
+      categoryMap[cat.id] = {
+        id: cat.id,
+        name: cat.name,
+        podcasts: [],
+        cover: null
+      };
+    });
+    
+    // Only add podcasts that belong to original categories (after normalization)
+    podcasts.forEach(podcast => {
+      if (!podcast.category) return;
+      const normalized = normalizeCategory(podcast.category);
+      
+      if (categoryMap[normalized]) {
+        const withNormalized = { ...podcast, category: normalized };
+        categoryMap[normalized].podcasts.push(withNormalized);
+        
+        // Use first podcast's cover as category cover
+        if (!categoryMap[normalized].cover && podcast.cover) {
+          categoryMap[normalized].cover = podcast.cover;
+        }
+      }
+    });
+    
+    // Sort podcasts within each category so Episode 1 shows first
+    Object.values(categoryMap).forEach(cat => {
+      cat.podcasts = sortEpisodes(cat.podcasts);
+    });
+    
+    // Return only original categories (even if they have no podcasts)
+    return ORIGINAL_CATEGORIES.map(cat => categoryMap[cat.id]);
+  };
 
-  const filteredPodcasts = podcasts.filter(podcast => {
-    const matchesSearch = podcast.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         podcast.host.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         podcast.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || podcast.category === filterCategory;
-    const matchesType = filterType === 'all' || podcast.type === filterType;
-    return matchesSearch && matchesCategory && matchesType;
-  });
+  const categories = getCategoryInfo();
+  
+  // Get episodes for selected category
+  const getCategoryEpisodes = () => {
+    if (!selectedCategory) return [];
+    const category = categories.find(cat => cat.id === selectedCategory);
+    return category ? category.podcasts : [];
+  };
 
   const handlePlay = (podcast) => {
     setSelectedPodcast(podcast);
     setIsPlaying(true);
+    
+    // Store last played podcast
+    if (podcast.id) {
+      localStorage.setItem('fog_last_played_podcast_id', podcast.id.toString());
+      setLastPlayedPodcastId(podcast.id);
+    }
     
     // If podcast has a valid audio URL (not '#'), use the audio player
     if (podcast.audioUrl && podcast.audioUrl !== '#') {
@@ -423,6 +533,113 @@ const Podcasts = () => {
     return time;
   };
 
+  // If a category is selected, show episode list view
+  if (selectedCategory) {
+    const categoryEpisodes = getCategoryEpisodes();
+    const selectedCategoryInfo = categories.find(cat => cat.id === selectedCategory);
+    
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Back Button */}
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            <span>Back to Categories</span>
+          </button>
+
+          {/* Category Title */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {selectedCategoryInfo ? selectedCategoryInfo.name : 'Podcasts'} Messages & Audio Sermons
+            </h1>
+            <p className="text-gray-600">{categoryEpisodes.length} episodes available</p>
+          </div>
+
+          {/* Episode List */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+              <span className="ml-3 text-gray-600">Loading episodes...</span>
+            </div>
+          ) : categoryEpisodes.length === 0 ? (
+            <div className="text-center py-12">
+              <Headphones className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No episodes found in this category</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <ul className="space-y-3">
+                {categoryEpisodes.map((podcast, index) => {
+                  const isLastPlayed = lastPlayedPodcastId === podcast.id;
+                  return (
+                    <li
+                      key={podcast.id}
+                      className={`flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0 px-3 rounded transition-colors group ${
+                        isLastPlayed 
+                          ? 'bg-blue-50 border-l-4 border-l-blue-500' 
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <div 
+                        className="flex items-center flex-1 min-w-0 cursor-pointer"
+                        onClick={() => handlePlay(podcast)}
+                      >
+                        <span className={`text-lg font-semibold mr-4 flex-shrink-0 ${
+                          isLastPlayed ? 'text-blue-700' : 'text-gray-700'
+                        }`}>
+                          {index + 1}.
+                        </span>
+                        <span className={`text-base underline flex-1 truncate ${
+                          isLastPlayed ? 'text-blue-900 font-medium' : 'text-gray-900'
+                        }`}>
+                          {podcast.title}
+                          {isLastPlayed && (
+                            <span className="ml-2 text-xs text-blue-600 font-normal">(Last played)</span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(podcast);
+                          }}
+                          className={`p-2 rounded-lg transition-colors ${
+                            isLastPlayed
+                              ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-100'
+                              : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
+                          }`}
+                          title="Download podcast"
+                        >
+                          <Download className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Audio Player */}
+        {playingPodcast && (
+          <AudioPlayer
+            audioUrl={playingPodcast.audioUrl}
+            podcastId={playingPodcast.id}
+            podcastTitle={playingPodcast.title}
+            podcastCover={playingPodcast.cover}
+            onClose={handleClosePlayer}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Default view: Show category covers
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -432,11 +649,10 @@ const Podcasts = () => {
           <p className="mt-2 text-gray-600">Listen to inspiring messages, wisdom keys, and spiritual content across all life stages</p>
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
+        {/* Search */}
+        {!selectedCategory && (
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+            <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
@@ -448,279 +664,77 @@ const Podcasts = () => {
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
-
-            {/* Category Filter */}
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name} ({category.count})
-                </option>
-              ))}
-            </select>
-
-            {/* Type Filter */}
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              {types.map(type => (
-                <option key={type.id} value={type.id}>
-                  {type.name} ({type.count})
-                </option>
-              ))}
-            </select>
           </div>
-        </div>
+        )}
 
-        {/* Featured Categories Section */}
+        {/* Category Covers Grid */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Featured Categories</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {categories.filter(cat => cat.id !== 'all').map((category) => (
-              <div 
-                key={category.id} 
-                className={`rounded-xl p-4 shadow-sm border transition-all duration-200 cursor-pointer hover:scale-105 ${
-                  filterCategory === category.id 
-                    ? 'bg-primary-50 border-primary-300 shadow-md' 
-                    : 'bg-white border-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => {
-                  setFilterCategory(category.id);
-                  // Scroll to podcasts section after a short delay
-                  setTimeout(() => {
-                    const podcastsSection = document.getElementById('podcasts-section');
-                    if (podcastsSection) {
-                      podcastsSection.scrollIntoView({ 
-                        behavior: 'smooth',
-                        block: 'start'
-                      });
-                    }
-                  }, 100);
-                }}
-              >
-                <div className="text-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
-                    category.id === 'spiritual-development' ? 'bg-blue-100' :
-                    category.id === 'relationships' ? 'bg-pink-100' :
-                    category.id === 'personal-development' ? 'bg-green-100' :
-                    category.id === 'wisdom-keys' ? 'bg-yellow-100' :
-                    category.id === 'beyond-dating-game' ? 'bg-purple-100' :
-                    category.id === 'wisdom-for-ladies' ? 'bg-rose-100' :
-                    category.id === 'teens' ? 'bg-indigo-100' :
-                    category.id === 'university-students' ? 'bg-cyan-100' : 'bg-gray-100'
-                  }`}>
-                    {(() => {
-                      switch (category.id) {
-                        case 'spiritual-development':
-                          return <Star className="w-6 h-6 text-blue-600" />;
-                        case 'relationships':
-                          return <Heart className="w-6 h-6 text-pink-600" />;
-                        case 'personal-development':
-                          return <User className="w-6 h-6 text-green-600" />;
-                        case 'wisdom-keys':
-                          return <BookOpen className="w-6 h-6 text-yellow-600" />;
-                        case 'beyond-dating-game':
-                          return <MessageCircle className="w-6 h-6 text-purple-600" />;
-                        case 'wisdom-for-ladies':
-                          return <Heart className="w-6 h-6 text-rose-600" />;
-                        case 'teens':
-                          return <Users className="w-6 h-6 text-indigo-600" />;
-                        case 'university-students':
-                          return <GraduationCap className="w-6 h-6 text-cyan-600" />;
-                        default:
-                          return <Headphones className="w-6 h-6 text-gray-600" />;
-                      }
-                    })()}
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-1">{category.name}</h3>
-                  <p className="text-xs text-gray-500">{category.count} episodes</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Live Streams Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Live Now</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {podcasts.filter(podcast => podcast.isLive).map((podcast) => (
-              <div key={podcast.id} className="bg-white rounded-xl shadow-sm border border-red-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                <div className="relative">
-                  <img
-                    src={podcast.cover}
-                    alt={podcast.title}
-                    className="w-full h-48 object-cover bg-gray-100"
-                    onError={(e) => {
-                      e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=center';
-                    }}
-                  />
-                  <div className="absolute top-2 left-2">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                          <Radio className="w-3 h-3 mr-1" />
-                    LIVE
-                    </span>
-                  </div>
-                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <button
-                      onClick={() => handlePlay(podcast)}
-                      className="bg-red-600 hover:bg-red-700 text-white rounded-full p-4 transition-colors duration-200"
-                    >
-                      <Radio className="w-8 h-8" />
-                    </button>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{podcast.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{podcast.description}</p>
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                    <div className="flex items-center">
-                      <User className="w-4 h-4 mr-1" />
-                      {podcast.host}
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {formatTime(podcast.duration)}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-end">
-                    <button
-                      onClick={() => handlePlay(podcast)}
-                      className="flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
-                    >
-                      <Radio className="w-4 h-4 mr-2" />
-                      Join Live
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Podcasts Grid */}
-        <div id="podcasts-section" className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">All Podcasts</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Podcast Categories</h2>
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
-              <span className="ml-3 text-gray-600">Loading podcasts...</span>
+              <span className="ml-3 text-gray-600">Loading categories...</span>
             </div>
-          ) : filteredPodcasts.filter(podcast => !podcast.isLive).length === 0 ? (
+          ) : categories.length === 0 ? (
             <div className="text-center py-12">
               <Headphones className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No podcasts found</p>
+              <p className="text-gray-600">No podcast categories found</p>
             </div>
           ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredPodcasts.filter(podcast => !podcast.isLive).map((podcast) => (
-              <div key={podcast.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                {/* Cover Image */}
-                <div className="relative">
-                  <img
-                    src={podcast.cover}
-                    alt={podcast.title}
-                    className="w-full h-48 object-cover bg-gray-100"
-                    onError={(e) => {
-                      e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=center';
-                    }}
-                  />
-                  <div className="absolute top-2 right-2">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(podcast.type)}`}>
-                      {getTypeIcon(podcast.type)}
-                      <span className="ml-1 capitalize">{podcast.type}</span>
-                    </span>
-                  </div>
-                  <div className="absolute top-2 left-2">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(podcast.category)}`}>
-                      {getCategoryIcon(podcast.category)}
-                      <span className="ml-1 text-xs">
-                        {podcast.category.replace('-', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
-                    <button
-                      onClick={() => handlePlay(podcast)}
-                      className="bg-white hover:bg-gray-100 text-gray-900 rounded-full p-3 transition-colors duration-200"
-                    >
-                      <Play className="w-6 h-6" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{podcast.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{podcast.description}</p>
-                  
-                  {/* Host and Duration */}
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                    <div className="flex items-center">
-                      <User className="w-4 h-4 mr-1" />
-                      {podcast.host}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {categories
+                .filter(category => {
+                  // Filter by search term if provided
+                  if (searchTerm) {
+                    return category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           category.podcasts.some(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()));
+                  }
+                  return true;
+                })
+                .map((category) => (
+                  <div
+                    key={category.id}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                    onClick={() => setSelectedCategory(category.id)}
+                  >
+                    {/* Category Cover Image */}
+                    <div className="relative h-64 bg-gray-100">
+                      {category.cover ? (
+                        <img
+                          src={category.cover}
+                          alt={category.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=center';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200">
+                          <Headphones className="w-16 h-16 text-primary-600" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Play className="w-12 h-12 text-white" />
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {formatTime(podcast.duration)}
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <div className="flex items-center">
-                      <Heart className="w-4 h-4 text-red-400 mr-1" />
-                      {podcast.rating}
-                    </div>
-                    <div className="flex items-center">
-                      <Play className="w-4 h-4 mr-1" />
-                      {podcast.plays}
-                    </div>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {podcast.tags.slice(0, 3).map((tag, index) => (
-                      <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        <Tag className="w-3 h-3 mr-1" />
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handlePlay(podcast)}
-                      className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      Play
-                    </button>
                     
-                    <button
-                      onClick={() => handleDownload(podcast)}
-                      className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                      title="Download podcast"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    
-                    <button className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                      <Heart className="w-4 h-4" />
-                    </button>
+                    {/* Category Info */}
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {category.podcasts.length} {category.podcasts.length === 1 ? 'episode' : 'episodes'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                ))}
+            </div>
           )}
         </div>
+
 
         {/* Podcast Player Modal */}
         {selectedPodcast && (

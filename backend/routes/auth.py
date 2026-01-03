@@ -108,6 +108,7 @@ async def sync_firebase_user(
         existing_user.full_name = sync_data.full_name or sync_data.display_name or sync_data.full_name
         existing_user.phone = sync_data.phone or existing_user.phone
         existing_user.location = sync_data.location or existing_user.location
+        existing_user.grade = sync_data.grade or existing_user.grade
         existing_user.role = sync_data.role or existing_user.role
         if sync_data.is_admin is not None:
             existing_user.is_admin = sync_data.is_admin
@@ -124,6 +125,7 @@ async def sync_firebase_user(
         existing_email_user.full_name = sync_data.full_name or existing_email_user.full_name
         existing_email_user.phone = sync_data.phone or existing_email_user.phone
         existing_email_user.location = sync_data.location or existing_email_user.location
+        existing_email_user.grade = sync_data.grade or existing_email_user.grade
         existing_email_user.role = sync_data.role or existing_email_user.role
         
         db.commit()
@@ -148,6 +150,7 @@ async def sync_firebase_user(
         hashed_password=None,  # Firebase users don't have passwords in backend
         phone=sync_data.phone,
         location=sync_data.location,
+        grade=sync_data.grade,
         role=sync_data.role or "Member",
         is_admin=sync_data.is_admin or False,
         is_active=True
@@ -188,6 +191,7 @@ async def sync_firebase_user_with_token(
             existing_user.full_name = firebase_user_info["display_name"]
         if firebase_user_info.get("phone_number"):
             existing_user.phone = firebase_user_info["phone_number"]
+        # Note: grade not available from Firebase token, would need to be passed separately
         
         db.commit()
         db.refresh(existing_user)
@@ -224,6 +228,7 @@ async def sync_firebase_user_with_token(
         firebase_uid=firebase_user_info["uid"],
         hashed_password=None,
         phone=firebase_user_info.get("phone_number"),
+        grade=None,  # Grade should be passed via sync data, not from Firebase token
         role="Member",
         is_admin=False,
         is_active=True

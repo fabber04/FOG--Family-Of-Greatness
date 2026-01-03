@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+import bcrypt
 
 from database import get_db
 from models import User
@@ -16,19 +17,41 @@ SECRET_KEY = "your-secret-key-here-change-in-production"  # Change this in produ
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing - use bcrypt directly to avoid passlib compatibility issues
+try:
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+except:
+    pwd_context = None
 
 # Security
 security = HTTPBearer()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    if pwd_context:
+        try:
+            return pwd_context.verify(plain_password, hashed_password)
+        except:
+            pass
+    # Fallback to bcrypt directly
+    try:
+        password_bytes = plain_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except:
+        return False
 
 def get_password_hash(password: str) -> str:
     """Hash a password."""
-    return pwd_context.hash(password)
+    if pwd_context:
+        try:
+            return pwd_context.hash(password)
+        except:
+            pass
+    # Fallback to bcrypt directly
+    password_bytes = password.encode('utf-8')
+    hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+    return hashed.decode('utf-8')
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create a JWT access token."""
