@@ -57,8 +57,9 @@ try:
     print(f"   Database type: {'SQLite' if DATABASE_URL.startswith('sqlite') else 'PostgreSQL'}")
     # Test the connection
     try:
+        from sqlalchemy import text
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         print(f"   ✅ Database connection test passed")
     except Exception as conn_error:
         print(f"   ⚠️  Database connection test failed: {conn_error}")

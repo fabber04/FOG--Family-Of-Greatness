@@ -21,8 +21,9 @@ try:
     print("Initializing database tables...")
     # Test connection first
     try:
+        from sqlalchemy import text
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         print("✅ Database connection verified")
     except Exception as conn_err:
         print(f"⚠️  Database connection test failed: {conn_err}")
