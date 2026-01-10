@@ -3,8 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Database URL - use DATABASE_URL from environment (Railway provides this) or default to SQLite
+# Database URL - Railway provides both DATABASE_URL (internal) and DATABASE_PUBLIC_URL (external)
+# Prefer DATABASE_URL for internal connections, fall back to DATABASE_PUBLIC_URL if needed
 DATABASE_URL = os.getenv("DATABASE_URL", "")
+if not DATABASE_URL or not DATABASE_URL.strip():
+    # Fall back to public URL if internal URL is not available
+    DATABASE_URL = os.getenv("DATABASE_PUBLIC_URL", "")
 
 # Handle Railway's PostgreSQL URL format
 # Railway sometimes provides postgres:// which needs to be converted to postgresql://
