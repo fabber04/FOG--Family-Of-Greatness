@@ -19,19 +19,32 @@ load_dotenv()
 # Create database tables
 try:
     print("Initializing database tables...")
+    # Test connection first
+    try:
+        with engine.connect() as conn:
+            conn.execute("SELECT 1")
+        print("✅ Database connection verified")
+    except Exception as conn_err:
+        print(f"⚠️  Database connection test failed: {conn_err}")
+        print("   Will retry table creation...")
+    
     Base.metadata.create_all(bind=engine)
     print("✅ Database tables created successfully")
     
     # Verify tables were created
-    from sqlalchemy import inspect
-    inspector = inspect(engine)
-    tables = inspector.get_table_names()
-    print(f"   Created {len(tables)} tables: {', '.join(sorted(tables))}")
+    try:
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        print(f"   Created {len(tables)} tables: {', '.join(sorted(tables))}")
+    except Exception as inspect_err:
+        print(f"⚠️  Could not verify tables: {inspect_err}")
 except Exception as e:
     print(f"❌ Error creating database tables: {e}")
     import traceback
     traceback.print_exc()
-    # Don't fail startup, but log the error
+    print("⚠️  Server will continue, but database operations may fail")
+    print("   Check Railway logs and DATABASE_URL configuration")
 
 # Initialize file storage
 try:

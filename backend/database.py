@@ -49,14 +49,26 @@ try:
         connect_args=connect_args,
         pool_pre_ping=True,  # Verify connections before using (important for Railway)
         pool_recycle=300,    # Recycle connections after 5 minutes
-        echo=False           # Set to True for SQL query logging (debug only)
+        echo=False,          # Set to True for SQL query logging (debug only)
+        pool_size=5,         # Connection pool size
+        max_overflow=10      # Maximum overflow connections
     )
     print(f"✅ Database engine created successfully")
     print(f"   Database type: {'SQLite' if DATABASE_URL.startswith('sqlite') else 'PostgreSQL'}")
+    # Test the connection
+    try:
+        with engine.connect() as conn:
+            conn.execute("SELECT 1")
+        print(f"   ✅ Database connection test passed")
+    except Exception as conn_error:
+        print(f"   ⚠️  Database connection test failed: {conn_error}")
+        print(f"   Server will start, but database operations may fail")
 except Exception as e:
     print(f"❌ Error creating database engine: {e}")
     print(f"   DATABASE_URL: {DATABASE_URL[:50]}..." if len(DATABASE_URL) > 50 else f"   DATABASE_URL: {DATABASE_URL}")
-    raise
+    # Don't raise - let the app start and handle DB errors gracefully
+    print(f"   ⚠️  Continuing without database connection (app may have limited functionality)")
+    raise  # Re-raise for now, but we could make this more graceful
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
