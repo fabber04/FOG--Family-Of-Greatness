@@ -53,7 +53,9 @@ default_origins = [
     "http://localhost:3000", 
     "http://localhost:3001",
     "http://localhost:3002",  # Additional React dev server port
-    "https://fabber04.github.io"  # GitHub Pages deployment
+    "https://fabber04.github.io",  # GitHub Pages deployment
+    "https://familyofgreatness.com",     # Custom domain
+    "https://www.familyofgreatness.com"   # Custom domain with www
 ]
 # Combine default origins with environment origins, filter out empty strings
 allow_origins = default_origins + [origin.strip() for origin in cors_origins if origin.strip()]
