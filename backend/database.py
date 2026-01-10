@@ -31,15 +31,21 @@ if DATABASE_URL.startswith("sqlite"):
     # SQLite connection args
     connect_args = {"check_same_thread": False}
 else:
-    # PostgreSQL and other databases don't need special connection args
-    # Railway's DATABASE_URL format: postgresql://user:pass@host:port/dbname
+    # PostgreSQL connection args for Railway
+    # Railway uses internal networking, so we may need connection pooling
     connect_args = {}
+    # Add connection pool settings for better reliability
+    pool_pre_ping = True  # Verify connections before using them
+    pool_recycle = 300    # Recycle connections after 5 minutes
 
-# Create engine
+# Create engine with appropriate settings
 try:
     engine = create_engine(
         DATABASE_URL,
-        connect_args=connect_args
+        connect_args=connect_args,
+        pool_pre_ping=True,  # Verify connections before using (important for Railway)
+        pool_recycle=300,    # Recycle connections after 5 minutes
+        echo=False           # Set to True for SQL query logging (debug only)
     )
     print(f"✅ Database engine created successfully")
     print(f"   Database type: {'SQLite' if DATABASE_URL.startswith('sqlite') else 'PostgreSQL'}")
