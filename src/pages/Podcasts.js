@@ -114,13 +114,20 @@ const Podcasts = () => {
     const loadPodcasts = async () => {
       try {
         setLoading(true);
-        console.log('Loading podcasts from API...', API_BASE);
+        console.log('🔍 Loading podcasts from API...', API_BASE);
         const data = await podcastService.getPodcasts();
-        console.log('Podcasts loaded:', data.length, 'items');
+        console.log('✅ Podcasts loaded:', data.length, 'items');
+        console.log('📊 Sample podcast:', data[0] || 'No podcasts');
         
         // Ensure data is an array
         if (!Array.isArray(data)) {
-          console.error('Podcasts data is not an array:', data);
+          console.error('❌ Podcasts data is not an array:', data);
+          setPodcasts([]);
+          return;
+        }
+        
+        if (data.length === 0) {
+          console.warn('⚠️ No podcasts returned from API');
           setPodcasts([]);
           return;
         }
@@ -156,10 +163,16 @@ const Podcasts = () => {
         });
         // Sort so Episode 1 starts at the top
         const sortedPodcasts = sortEpisodes(mappedPodcasts);
-        console.log('Podcasts sorted:', sortedPodcasts.length, 'items');
+        console.log('✅ Podcasts sorted:', sortedPodcasts.length, 'items');
+        console.log('📁 Categories found:', [...new Set(sortedPodcasts.map(p => p.category))]);
         setPodcasts(sortedPodcasts);
       } catch (error) {
-        console.error('Error loading podcasts:', error);
+        console.error('❌ Error loading podcasts:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          API_BASE
+        });
         // Fallback to empty array on error
         setPodcasts([]);
       } finally {
@@ -388,6 +401,17 @@ const Podcasts = () => {
   };
 
   const categories = getCategoryInfo();
+  
+  // Debug: Log category info
+  useEffect(() => {
+    if (podcasts.length > 0) {
+      console.log('📂 Categories after grouping:', categories.map(c => ({
+        id: c.id,
+        name: c.name,
+        count: c.podcasts.length
+      })));
+    }
+  }, [podcasts, categories]);
   
   // Get episodes for selected category
   const getCategoryEpisodes = () => {
