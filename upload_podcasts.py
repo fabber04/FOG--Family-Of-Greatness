@@ -13,8 +13,8 @@ import requests
 from pathlib import Path
 
 # Configuration
-# Use Railway URL for production, or set via environment variable
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://fog-family-of-greatness-production.up.railway.app")
+# Use Render URL for production, or set via environment variable
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://fog-backend-iyhz.onrender.com")
 PODCASTS_FOLDER = Path(__file__).parent / "BEYOND THE DATING GAME-20251209T191233Z-1-001" / "BEYOND THE DATING GAME"
 IMAGES_FOLDER = Path(__file__).parent / "public" / "images" / "podcasts"
 
