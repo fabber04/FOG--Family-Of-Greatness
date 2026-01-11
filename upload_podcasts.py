@@ -337,11 +337,11 @@ def main():
             
             # Create podcast entry
             print("  📝 Creating podcast entry...")
-            # Use original filename (without extension) as title
-            original_title = Path(metadata["filename"]).stem  # Get filename without extension
+            # Use metadata title if available, otherwise use filename
+            podcast_title = metadata.get("title") or Path(metadata["filename"]).stem
             
             podcast_data = {
-                "title": original_title,  # Use original filename as title
+                "title": podcast_title,  # Use metadata title
                 "host": metadata["host"],
                 "type": metadata["type"],
                 "category": metadata["category"],
