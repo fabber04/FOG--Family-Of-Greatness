@@ -1,8 +1,6 @@
 // API Service for Backend Communication
 // This service handles all communication with the Python FastAPI backend
 
-import { auth } from '../firebase';
-
 // Pick the right API base depending on environment.
 // - REACT_APP_API_URL: explicit override (build time)
 // - localhost/127.0.0.1: local dev
@@ -18,13 +16,7 @@ const API_BASE_URL =
 // Helper function to get auth token
 const getAuthToken = async () => {
   try {
-    // Try to get Firebase ID token first
-    if (auth && auth.currentUser) {
-      const token = await auth.currentUser.getIdToken();
-      return token;
-    }
-    
-    // Fallback: check localStorage for backend JWT token
+    // Check localStorage for backend JWT token
     const user = localStorage.getItem('fog_user');
     if (user) {
       const userData = JSON.parse(user);
@@ -77,23 +69,8 @@ const apiRequest = async (endpoint, options = {}) => {
       
       // Handle 401 Unauthorized - token might be expired
       if (response.status === 401) {
-        // Try to refresh token
-        if (auth && auth.currentUser) {
-          try {
-            const newToken = await auth.currentUser.getIdToken(true);
-            headers['Authorization'] = `Bearer ${newToken}`;
-            // Retry the request
-            const retryResponse = await fetch(`${apiUrl}${endpoint}`, {
-              ...options,
-              headers,
-            });
-            if (retryResponse.ok) {
-              return await retryResponse.json();
-            }
-          } catch (refreshError) {
-            console.error('Token refresh failed:', refreshError);
-          }
-        }
+        // Token expired - user needs to re-authenticate
+        console.warn('Authentication token expired');
       }
       
       throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
@@ -255,28 +232,10 @@ export const prayerService = {
   },
 };
 
-// Firebase User Sync
-export const syncFirebaseUser = async (firebaseToken, userData = {}) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/sync-firebase-user-with-token`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${firebaseToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error syncing Firebase user:', error);
-    throw error;
-  }
+// User Sync (Firebase removed - kept for backward compatibility)
+export const syncFirebaseUser = async (token, userData = {}) => {
+  console.warn('syncFirebaseUser is deprecated - Firebase has been removed');
+  return null;
 };
 
 // Health check

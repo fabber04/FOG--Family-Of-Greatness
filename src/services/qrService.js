@@ -1,25 +1,22 @@
-import { 
-  doc, 
-  setDoc, 
-  getDoc, 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  getDocs,
-  orderBy,
-  updateDoc,
-  serverTimestamp 
-} from 'firebase/firestore';
-import { db } from '../firebase';
+// QR Check-in Services (Firebase removed - using localStorage for demo)
 
-// Check if Firebase is properly configured
-const isFirebaseAvailable = () => {
-  return db !== null;
+// Mock data storage in localStorage
+const getMockCheckIns = () => {
+  try {
+    const stored = localStorage.getItem('fog_mock_checkins');
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
 };
 
-// Mock data for development
-const mockCheckIns = [];
+const saveMockCheckIns = (checkIns) => {
+  try {
+    localStorage.setItem('fog_mock_checkins', JSON.stringify(checkIns));
+  } catch (error) {
+    console.error('Error saving mock check-ins:', error);
+  }
+};
 
 // QR Check-in Services
 export const qrService = {
@@ -31,17 +28,16 @@ export const qrService = {
         eventTitle: eventData.title,
         eventDate: eventData.date,
         eventTime: eventData.time,
-        generatedAt: new Date(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+        generatedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
         isActive: true
       };
 
-      if (!isFirebaseAvailable()) {
-        console.log('Demo mode: QR code would be generated:', qrData);
-        return qrData;
-      }
+      // Store in localStorage
+      const qrCodes = JSON.parse(localStorage.getItem('fog_event_qrs') || '{}');
+      qrCodes[eventId] = qrData;
+      localStorage.setItem('fog_event_qrs', JSON.stringify(qrCodes));
 
-      await setDoc(doc(db, 'eventQRs', eventId), qrData);
       return qrData;
     } catch (error) {
       console.error('Error generating event QR:', error);
@@ -52,27 +48,11 @@ export const qrService = {
   // Get QR data for an event
   async getEventQR(eventId) {
     try {
-      if (!isFirebaseAvailable()) {
-        // Return mock QR data
-        return {
-          eventId,
-          eventTitle: 'Demo Event',
-          eventDate: '2024-01-15',
-          eventTime: '19:00',
-          generatedAt: new Date(),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          isActive: true
-        };
-      }
-
-      const qrDoc = await getDoc(doc(db, 'eventQRs', eventId));
-      if (qrDoc.exists()) {
-        return qrDoc.data();
-      }
-      return null;
+      const qrCodes = JSON.parse(localStorage.getItem('fog_event_qrs') || '{}');
+      return qrCodes[eventId] || null;
     } catch (error) {
       console.error('Error getting event QR:', error);
-      throw error;
+      return null;
     }
   },
 
@@ -80,10 +60,11 @@ export const qrService = {
   async processCheckIn(userId, qrData, userProfile) {
     try {
       const checkInData = {
+        id: `checkin-${Date.now()}`,
         userId,
         eventId: qrData.eventId,
         eventTitle: qrData.eventTitle,
-        checkInTime: new Date(),
+        checkInTime: new Date().toISOString(),
         userProfile: {
           name: userProfile.name || 'Anonymous',
           email: userProfile.email || '',
@@ -92,44 +73,22 @@ export const qrService = {
         status: 'checked-in'
       };
 
-      if (!isFirebaseAvailable()) {
-        // Check if already checked in (demo mode)
-        const existingCheckIn = mockCheckIns.find(
-          checkIn => checkIn.userId === userId && checkIn.eventId === qrData.eventId
-        );
-        
-        if (existingCheckIn) {
-          throw new Error('Already checked in to this event');
-        }
-
-        // Add to mock data
-        mockCheckIns.push(checkInData);
-        console.log('Demo mode: Check-in processed:', checkInData);
-        return {
-          id: `demo-${Date.now()}`,
-          ...checkInData
-        };
-      }
-
-      // Check if user already checked in
-      const existingCheckIn = await this.getUserCheckIn(userId, qrData.eventId);
+      const mockCheckIns = getMockCheckIns();
+      
+      // Check if already checked in
+      const existingCheckIn = mockCheckIns.find(
+        checkIn => checkIn.userId === userId && checkIn.eventId === qrData.eventId
+      );
+      
       if (existingCheckIn) {
         throw new Error('Already checked in to this event');
       }
 
-      // Add check-in record
-      const checkInRef = await addDoc(collection(db, 'checkIns'), {
-        ...checkInData,
-        checkInTime: serverTimestamp()
-      });
-      
-      // Update event attendance count
-      await this.updateEventAttendance(qrData.eventId);
+      // Add to mock data
+      mockCheckIns.push(checkInData);
+      saveMockCheckIns(mockCheckIns);
 
-      return {
-        id: checkInRef.id,
-        ...checkInData
-      };
+      return checkInData;
     } catch (error) {
       console.error('Error processing check-in:', error);
       throw error;
@@ -139,89 +98,50 @@ export const qrService = {
   // Get user's check-in for a specific event
   async getUserCheckIn(userId, eventId) {
     try {
-      if (!isFirebaseAvailable()) {
-        return mockCheckIns.find(
-          checkIn => checkIn.userId === userId && checkIn.eventId === eventId
-        ) || null;
-      }
-
-      const q = query(
-        collection(db, 'checkIns'),
-        where('userId', '==', userId),
-        where('eventId', '==', eventId)
-      );
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        return { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
-      }
-      return null;
+      const mockCheckIns = getMockCheckIns();
+      return mockCheckIns.find(
+        checkIn => checkIn.userId === userId && checkIn.eventId === eventId
+      ) || null;
     } catch (error) {
       console.error('Error getting user check-in:', error);
-      throw error;
+      return null;
     }
   },
 
   // Get all check-ins for an event
   async getEventCheckIns(eventId) {
     try {
-      if (!isFirebaseAvailable()) {
-        return mockCheckIns.filter(checkIn => checkIn.eventId === eventId);
-      }
-
-      const q = query(
-        collection(db, 'checkIns'),
-        where('eventId', '==', eventId),
-        orderBy('checkInTime', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const mockCheckIns = getMockCheckIns();
+      return mockCheckIns
+        .filter(checkIn => checkIn.eventId === eventId)
+        .sort((a, b) => new Date(b.checkInTime) - new Date(a.checkInTime));
     } catch (error) {
       console.error('Error getting event check-ins:', error);
-      throw error;
+      return [];
     }
   },
 
   // Update event attendance count
   async updateEventAttendance(eventId) {
     try {
-      if (!isFirebaseAvailable()) {
-        console.log('Demo mode: Attendance would be updated for event:', eventId);
-        return mockCheckIns.filter(checkIn => checkIn.eventId === eventId).length;
-      }
-
       const checkIns = await this.getEventCheckIns(eventId);
-      const attendanceCount = checkIns.length;
-      
-      // Update the event document with attendance count
-      await updateDoc(doc(db, 'events', eventId), {
-        attendanceCount,
-        lastUpdated: serverTimestamp()
-      });
-
-      return attendanceCount;
+      return checkIns.length;
     } catch (error) {
       console.error('Error updating event attendance:', error);
-      throw error;
+      return 0;
     }
   },
 
   // Get user's check-in history
   async getUserCheckInHistory(userId) {
     try {
-      if (!isFirebaseAvailable()) {
-        return mockCheckIns.filter(checkIn => checkIn.userId === userId);
-      }
-
-      const q = query(
-        collection(db, 'checkIns'),
-        where('userId', '==', userId),
-        orderBy('checkInTime', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const mockCheckIns = getMockCheckIns();
+      return mockCheckIns
+        .filter(checkIn => checkIn.userId === userId)
+        .sort((a, b) => new Date(b.checkInTime) - new Date(a.checkInTime));
     } catch (error) {
       console.error('Error getting user check-in history:', error);
-      throw error;
+      return [];
     }
   },
 
@@ -241,4 +161,4 @@ export const qrService = {
 
     return { valid: true };
   }
-}; 
+};

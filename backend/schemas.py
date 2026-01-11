@@ -39,18 +39,6 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
-# Firebase sync schemas
-class FirebaseSyncRequest(BaseModel):
-    firebase_uid: str
-    email: EmailStr
-    full_name: str
-    display_name: Optional[str] = None
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    grade: Optional[str] = None  # Grade/Level: 9th Grade, 10th Grade, College, etc.
-    role: Optional[str] = None
-    is_admin: Optional[bool] = False
-
 # Library item schemas
 class LibraryItemBase(BaseModel):
     title: str

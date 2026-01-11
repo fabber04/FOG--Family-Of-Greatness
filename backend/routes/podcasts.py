@@ -27,8 +27,8 @@ AUDIO_DIR = "uploads/podcasts/audio"
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
 ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".m4a", ".wav", ".ogg", ".aac", ".mp4"}
 
-# Storage mode: "firebase" or "local" (default to local Python file server)
-STORAGE_MODE = os.getenv("STORAGE_MODE", "local").lower()
+# Storage mode: using local Python file server (Firebase removed)
+STORAGE_MODE = "local"  # Always use local storage
 
 # Ensure upload directories exist (for local fallback)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -168,10 +168,6 @@ async def delete_podcast(
             # Try Python file server first
             if db_podcast.cover.startswith("/storage/"):
                 delete_storage_file(db_podcast.cover)
-            # Try Firebase Storage
-            elif db_podcast.cover.startswith("http") and "firebasestorage" in db_podcast.cover:
-                from utils.firebase_storage import delete_file_from_firebase
-                delete_file_from_firebase(db_podcast.cover)
             # Legacy local file
             else:
                 file_path = os.path.join(UPLOAD_DIR, db_podcast.cover)
@@ -185,10 +181,6 @@ async def delete_podcast(
             # Try Python file server first
             if db_podcast.audio_url.startswith("/storage/"):
                 delete_storage_file(db_podcast.audio_url)
-            # Try Firebase Storage
-            elif db_podcast.audio_url.startswith("http") and "firebasestorage" in db_podcast.audio_url:
-                from utils.firebase_storage import delete_file_from_firebase
-                delete_file_from_firebase(db_podcast.audio_url)
             # Legacy local file
             elif db_podcast.audio_url.startswith("/uploads/"):
                 file_path = db_podcast.audio_url.lstrip("/")
@@ -221,37 +213,18 @@ async def upload_podcast_cover(
     # Read file content
     file_content = await file.read()
     
-    # Use Python file server (default)
-    if STORAGE_MODE == "local":
-        file_path, public_url = save_file(
-            file_content=file_content,
-            original_filename=file.filename,
-            category="podcasts",
-            subcategory="covers",
-            file_type="image",
-            preserve_filename=True
-        )
-        
-        if file_path and public_url:
-            return {"filename": file.filename, "url": public_url}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to save file to storage")
+    # Use Python file server (local storage)
+    file_path, public_url = save_file(
+        file_content=file_content,
+        original_filename=file.filename,
+        category="podcasts",
+        subcategory="covers",
+        file_type="image",
+        preserve_filename=True
+    )
     
-    # Firebase Storage (if enabled)
-    elif STORAGE_MODE == "firebase":
-        from utils.firebase_storage import upload_file_to_firebase, get_content_type_from_filename
-        content_type = get_content_type_from_filename(file.filename)
-        firebase_url = upload_file_to_firebase(
-            file_content=file_content,
-            file_name=file.filename,
-            folder_path="podcasts/covers",
-            content_type=content_type
-        )
-        
-        if firebase_url:
-            return {"filename": file.filename, "url": firebase_url}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to upload to Firebase Storage")
+    if file_path and public_url:
+        return {"filename": file.filename, "url": public_url}
     
     # Legacy local storage fallback
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -286,37 +259,18 @@ async def upload_podcast_audio(
     # Read file content
     file_content = await file.read()
     
-    # Use Python file server (default)
-    if STORAGE_MODE == "local":
-        file_path, public_url = save_file(
-            file_content=file_content,
-            original_filename=file.filename,
-            category="podcasts",
-            subcategory="audio",
-            file_type="audio",
-            preserve_filename=True
-        )
-        
-        if file_path and public_url:
-            return {"filename": file.filename, "url": public_url}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to save audio file to storage")
+    # Use Python file server (local storage)
+    file_path, public_url = save_file(
+        file_content=file_content,
+        original_filename=file.filename,
+        category="podcasts",
+        subcategory="audio",
+        file_type="audio",
+        preserve_filename=True
+    )
     
-    # Firebase Storage (if enabled)
-    elif STORAGE_MODE == "firebase":
-        from utils.firebase_storage import upload_file_to_firebase, get_content_type_from_filename
-        content_type = get_content_type_from_filename(file.filename)
-        firebase_url = upload_file_to_firebase(
-            file_content=file_content,
-            file_name=file.filename,
-            folder_path="podcasts/audio",
-            content_type=content_type
-        )
-        
-        if firebase_url:
-            return {"filename": file.filename, "url": firebase_url}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to upload to Firebase Storage")
+    if file_path and public_url:
+        return {"filename": file.filename, "url": public_url}
     
     # Legacy local storage fallback
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

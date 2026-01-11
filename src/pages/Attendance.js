@@ -14,7 +14,7 @@ import {
   FileText
 } from 'lucide-react';
 import { qrService } from '../services/qrService';
-import { eventService } from '../services/firebaseService';
+import { eventService } from '../services/apiService';
 import QRGenerator from '../components/QRGenerator';
 import toast from 'react-hot-toast';
 
