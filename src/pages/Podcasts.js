@@ -699,15 +699,28 @@ const Podcasts = () => {
               <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
               <span className="ml-3 text-gray-600">Loading categories...</span>
             </div>
-          ) : categories.length === 0 ? (
+          ) : categories.filter(c => c.podcasts.length > 0).length === 0 ? (
             <div className="text-center py-12">
               <Headphones className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No podcast categories found</p>
+              <p className="text-gray-600">
+                {podcasts.length > 0 
+                  ? `Found ${podcasts.length} podcasts but no matching categories. Check console for details.`
+                  : 'No podcasts found. Please check the API connection.'}
+              </p>
+              {podcasts.length > 0 && (
+                <div className="mt-4 text-sm text-gray-500">
+                  <p>Debug info: {podcasts.length} podcasts loaded</p>
+                  <p>Categories: {categories.map(c => `${c.name} (${c.podcasts.length})`).join(', ')}</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {categories
                 .filter(category => {
+                  // Only show categories that have podcasts
+                  if (category.podcasts.length === 0) return false;
+                  
                   // Filter by search term if provided
                   if (searchTerm) {
                     return category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
