@@ -56,7 +56,7 @@ const Podcasts = () => {
   const [lastPlayedPodcastId, setLastPlayedPodcastId] = useState(null); // Track last played podcast
 
   // Use the same API base URL logic as apiService.js
-  const DEFAULT_PROD_API = 'https://fog-family-of-greatness-production.up.railway.app';
+  const DEFAULT_PROD_API = 'https://fog-backend-iyhz.onrender.com';
   const API_BASE = useMemo(() => {
     if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
     if (
@@ -179,7 +179,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'spiritual-development',
       description: 'Start your day with this inspiring devotional message about walking in faith through life\'s challenges.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/Wisdom%20keys.jpeg',
+      cover: '/images/podcasts/Wisdom%20keys.jpeg',
       duration: '15:30',
       publishDate: '2024-01-15',
       isLive: false,
@@ -197,7 +197,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'personal-development',
       description: 'Learn practical strategies for personal growth and overcoming life\'s challenges with biblical wisdom.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/Personal%20developments%20.jpeg',
+      cover: '/images/podcasts/Personal%20developments%20.jpeg',
       duration: '45:20',
       publishDate: '2024-01-14',
       isLive: false,
@@ -215,7 +215,7 @@ const Podcasts = () => {
       type: 'live',
       category: 'spiritual-development',
       description: 'Join us live prayer sessions every Monday, Wednesday and Friday.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/Wisdom%20keys.jpeg',
+      cover: '/images/podcasts/Wisdom%20keys.jpeg',
       duration: 'Live',
       publishDate: '2024-01-15',
       isLive: true,
@@ -233,7 +233,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'relationships',
       description: 'Biblical principles for building and maintaining strong, healthy marriages.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/wisdom%20for%20relationships%20.jpeg',
+      cover: '/images/podcasts/wisdom%20for%20relationships%20.jpeg',
       duration: '32:15',
       publishDate: '2024-01-13',
       isLive: false,
@@ -251,7 +251,7 @@ const Podcasts = () => {
       type: 'series',
       category: 'wisdom-keys',
       description: 'Discover the keys to wisdom that unlock success, purpose, and fulfillment in life.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/Wisdom%20keys.jpeg',
+      cover: '/images/podcasts/Wisdom%20keys.jpeg',
       duration: 'Series',
       publishDate: '2024-01-10',
       isLive: false,
@@ -269,7 +269,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'beyond-dating-game',
       description: 'Move beyond superficial dating and discover how to build meaningful, lasting relationships.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/Beyond%20the%20dating%20Game.jpeg',
+      cover: '/images/podcasts/Beyond%20the%20dating%20Game.jpeg',
       duration: '38:45',
       publishDate: '2024-01-14',
       isLive: false,
@@ -287,7 +287,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'wisdom-for-ladies',
       description: 'Empowering women to discover and embrace their God-given purpose and potential.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/exceptional%20ladies.jpeg',
+      cover: '/images/podcasts/exceptional%20ladies.jpeg',
       duration: '42:15',
       publishDate: '2024-01-12',
       isLive: false,
@@ -305,7 +305,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'teens',
       description: 'Real talk for teenagers about faith, relationships, school, and making wise choices.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/wisdom%20for%20teenagers.jpeg',
+      cover: '/images/podcasts/wisdom%20for%20teenagers.jpeg',
       duration: '28:30',
       publishDate: '2024-01-11',
       isLive: false,
@@ -323,7 +323,7 @@ const Podcasts = () => {
       type: 'episode',
       category: 'university-students',
       description: 'Practical advice for university students on maintaining faith while pursuing academic excellence.',
-      cover: '/FOG--Family-Of-Greatness/images/podcasts/wisdom%20for%20univeristy%20students.jpeg',
+      cover: '/images/podcasts/wisdom%20for%20univeristy%20students.jpeg',
       duration: '35:20',
       publishDate: '2024-01-09',
       isLive: false,

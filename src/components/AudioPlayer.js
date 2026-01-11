@@ -2,7 +2,12 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize2, Download, SkipBack, SkipForward, X } from 'lucide-react';
 import { getAuthToken } from '../services/apiService';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Use the same API base URL logic as apiService.js
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (typeof window !== 'undefined' && 
+   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8000'
+    : 'https://fog-backend-iyhz.onrender.com');
 
 const AudioPlayer = ({ audioUrl, podcastId, podcastTitle, podcastCover, onClose }) => {
   const audioRef = useRef(null);

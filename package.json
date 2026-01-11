@@ -2,7 +2,7 @@
   "name": "fog-platform",
   "version": "1.0.0",
   "description": "FOG - Family of Greatness Platform",
-  "homepage": "https://fabber04.github.io/FOG--Family-Of-Greatness",
+  "homepage": "https://familyofgreatness.com",
   "private": true,
   "dependencies": {
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",

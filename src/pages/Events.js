@@ -43,7 +43,7 @@ const Events = () => {
       maxAttendees: 50,
       currentAttendees: 23,
       featured: true,
-      image: '/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0070.jpg'
+      image: '/images/events/IMG-20250825-WA0070.jpg'
     },
     {
       id: 2,
@@ -56,7 +56,7 @@ const Events = () => {
       maxAttendees: 200,
       currentAttendees: 156,
       featured: true,
-      image: '/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0064.jpg'
+      image: '/images/events/IMG-20250825-WA0064.jpg'
     },
     {
       id: 3,
@@ -69,21 +69,21 @@ const Events = () => {
       maxAttendees: 80,
       currentAttendees: 45,
       featured: false,
-      image: '/FOG--Family-Of-Greatness/images/events/IMG-20250825-WA0062.jpg'
+      image: '/images/events/IMG-20250825-WA0062.jpg'
     }
   ];
 
   const ladiesNightPhotos = [
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250810-WA0001.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0066.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0067.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0068.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0069.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0071.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0072.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0073.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0074.jpg',
-    '/FOG--Family-Of-Greatness/images/ladies-night/IMG-20250825-WA0075.jpg'
+    '/images/ladies-night/IMG-20250810-WA0001.jpg',
+    '/images/ladies-night/IMG-20250825-WA0066.jpg',
+    '/images/ladies-night/IMG-20250825-WA0067.jpg',
+    '/images/ladies-night/IMG-20250825-WA0068.jpg',
+    '/images/ladies-night/IMG-20250825-WA0069.jpg',
+    '/images/ladies-night/IMG-20250825-WA0071.jpg',
+    '/images/ladies-night/IMG-20250825-WA0072.jpg',
+    '/images/ladies-night/IMG-20250825-WA0073.jpg',
+    '/images/ladies-night/IMG-20250825-WA0074.jpg',
+    '/images/ladies-night/IMG-20250825-WA0075.jpg'
   ];
 
   const getCategoryColor = (category) => {

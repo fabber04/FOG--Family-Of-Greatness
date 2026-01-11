@@ -6,8 +6,8 @@ import { auth } from '../firebase';
 // Pick the right API base depending on environment.
 // - REACT_APP_API_URL: explicit override (build time)
 // - localhost/127.0.0.1: local dev
-// - otherwise: deployed Railway API
-const DEFAULT_PROD_API = 'https://fog-family-of-greatness-production.up.railway.app';
+// - otherwise: deployed Render API
+const DEFAULT_PROD_API = 'https://fog-backend-iyhz.onrender.com';
 const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
   (typeof window !== 'undefined' &&
@@ -38,7 +38,7 @@ const getAuthToken = async () => {
   }
 };
 
-// Helper function for API requests
+// Helper function for API requests with fallback
 const apiRequest = async (endpoint, options = {}) => {
   const token = await getAuthToken();
   const headers = {
@@ -50,11 +50,27 @@ const apiRequest = async (endpoint, options = {}) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  // Try primary API URL first
+  let apiUrl = API_BASE_URL;
+  const fallbackUrl = DEFAULT_PROD_API;
+  
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    let response = await fetch(`${apiUrl}${endpoint}`, {
       ...options,
       headers,
     });
+
+    // If primary URL fails with 502/503/504, try fallback
+    if ((response.status === 502 || response.status === 503 || response.status === 504) && 
+        apiUrl !== fallbackUrl && 
+        process.env.REACT_APP_API_URL) {
+      console.warn(`Primary API (${apiUrl}) returned ${response.status}, trying fallback...`);
+      apiUrl = fallbackUrl;
+      response = await fetch(`${apiUrl}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ detail: response.statusText }));
@@ -67,7 +83,7 @@ const apiRequest = async (endpoint, options = {}) => {
             const newToken = await auth.currentUser.getIdToken(true);
             headers['Authorization'] = `Bearer ${newToken}`;
             // Retry the request
-            const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+            const retryResponse = await fetch(`${apiUrl}${endpoint}`, {
               ...options,
               headers,
             });
@@ -86,9 +102,26 @@ const apiRequest = async (endpoint, options = {}) => {
     return await response.json();
   } catch (error) {
     console.error('API request error:', error);
+    // If it's a network error and we haven't tried fallback, try it
+    if ((error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) && 
+        apiUrl !== fallbackUrl && 
+        process.env.REACT_APP_API_URL) {
+      console.warn('Primary API failed, trying fallback URL...');
+      try {
+        const fallbackResponse = await fetch(`${fallbackUrl}${endpoint}`, {
+          ...options,
+          headers,
+        });
+        if (fallbackResponse.ok) {
+          return await fallbackResponse.json();
+        }
+      } catch (fallbackError) {
+        console.error('Fallback API also failed:', fallbackError);
+      }
+    }
     // If it's a network error, provide a helpful message
     if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-      throw new Error('Cannot connect to backend API. Please ensure the server is running at ' + API_BASE_URL);
+      throw new Error('Cannot connect to backend API. Please ensure the server is running at ' + apiUrl);
     }
     throw error;
   }
