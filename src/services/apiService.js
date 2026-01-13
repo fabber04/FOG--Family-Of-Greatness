@@ -13,7 +13,7 @@ const getApiBaseUrl = () => {
   // Check for explicit environment variable (set at build time)
   // In production builds, undefined env vars become the string "undefined"
   const envApiUrl = process.env.REACT_APP_API_URL;
-  if (envApiUrl && envApiUrl !== 'undefined' && envApiUrl.trim() !== '') {
+  if (envApiUrl && envApiUrl !== 'undefined' && envApiUrl.trim() !== '' && !envApiUrl.includes('api.familyofgreatness.com')) {
     return envApiUrl;
   }
   
@@ -25,15 +25,22 @@ const getApiBaseUrl = () => {
     }
   }
   
-  // Always default to production API
+  // Always default to production API (Render backend)
+  // This ensures we never use the wrong api.familyofgreatness.com URL
   return DEFAULT_PROD_API;
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
+// Safety check: If somehow we got the wrong URL, force the correct one
+const FINAL_API_BASE_URL = (API_BASE_URL && !API_BASE_URL.includes('api.familyofgreatness.com') && !API_BASE_URL.includes('railway.app'))
+  ? API_BASE_URL
+  : DEFAULT_PROD_API;
+
 // Log API URL for debugging (always log in production to help diagnose issues)
 if (typeof window !== 'undefined') {
-  console.log('🔧 API_BASE_URL:', API_BASE_URL);
+  console.log('🔧 API_BASE_URL (raw):', API_BASE_URL);
+  console.log('🔧 FINAL_API_BASE_URL (used):', FINAL_API_BASE_URL);
   console.log('🔧 REACT_APP_API_URL env:', process.env.REACT_APP_API_URL);
   console.log('🔧 Hostname:', window.location.hostname);
 }
@@ -68,7 +75,15 @@ const apiRequest = async (endpoint, options = {}) => {
   }
 
   // Ensure we have a valid API URL - always fallback to production API
-  let apiUrl = API_BASE_URL || DEFAULT_PROD_API;
+  // Use FINAL_API_BASE_URL which has safety checks
+  let apiUrl = FINAL_API_BASE_URL || DEFAULT_PROD_API;
+  
+  // Additional safety: reject wrong URLs
+  if (apiUrl.includes('api.familyofgreatness.com') || apiUrl.includes('railway.app')) {
+    console.warn('⚠️ Wrong API URL detected, using Render backend:', apiUrl, '→', DEFAULT_PROD_API);
+    apiUrl = DEFAULT_PROD_API;
+  }
+  
   if (!apiUrl || apiUrl === 'undefined' || apiUrl.trim() === '') {
     console.warn('⚠️ API_BASE_URL is empty, using default:', DEFAULT_PROD_API);
     apiUrl = DEFAULT_PROD_API;

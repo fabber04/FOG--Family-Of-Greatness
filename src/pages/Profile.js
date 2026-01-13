@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
-// Firebase removed - user service no longer needed
+
 
 const Profile = () => {
   // Beta launch: Account ownership not shipping - redirect to home

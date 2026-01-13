@@ -59,8 +59,9 @@ const Podcasts = () => {
   const DEFAULT_PROD_API = 'https://fog-backend-iyhz.onrender.com';
   const API_BASE = useMemo(() => {
     // Check for explicit environment variable (set at build time)
-    if (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL !== 'undefined') {
-      return process.env.REACT_APP_API_URL;
+    const envApiUrl = process.env.REACT_APP_API_URL;
+    if (envApiUrl && envApiUrl !== 'undefined' && envApiUrl.trim() !== '' && !envApiUrl.includes('api.familyofgreatness.com')) {
+      return envApiUrl;
     }
     
     // Check if running locally
@@ -71,7 +72,8 @@ const Podcasts = () => {
       }
     }
     
-    // Always default to production API
+    // Always default to production API (Render backend)
+    // Never use api.familyofgreatness.com or railway.app
     return DEFAULT_PROD_API;
   }, []);
   
