@@ -24,9 +24,11 @@ const API_BASE_URL = (() => {
   return DEFAULT_PROD_API;
 })();
 
-// Log API URL for debugging (only in development)
-if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+// Log API URL for debugging (always log in production to help diagnose issues)
+if (typeof window !== 'undefined') {
   console.log('🔧 API_BASE_URL:', API_BASE_URL);
+  console.log('🔧 REACT_APP_API_URL env:', process.env.REACT_APP_API_URL);
+  console.log('🔧 Hostname:', window.location.hostname);
 }
 
 // Helper function to get auth token
@@ -58,18 +60,20 @@ const apiRequest = async (endpoint, options = {}) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Ensure we have a valid API URL
+  // Ensure we have a valid API URL - always fallback to production API
   let apiUrl = API_BASE_URL || DEFAULT_PROD_API;
+  if (!apiUrl || apiUrl === 'undefined' || apiUrl.trim() === '') {
+    console.warn('⚠️ API_BASE_URL is empty, using default:', DEFAULT_PROD_API);
+    apiUrl = DEFAULT_PROD_API;
+  }
   const fallbackUrl = DEFAULT_PROD_API;
   
   // Ensure endpoint starts with /
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const fullUrl = `${apiUrl}${normalizedEndpoint}`;
   
-  // Log for debugging
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    console.log('🌐 API Request:', fullUrl);
-  }
+  // Always log the full URL being requested (helps debug production issues)
+  console.log('🌐 API Request:', fullUrl);
   
   try {
     let response = await fetch(fullUrl, {

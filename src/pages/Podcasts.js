@@ -58,15 +58,27 @@ const Podcasts = () => {
   // Use the same API base URL logic as apiService.js
   const DEFAULT_PROD_API = 'https://fog-backend-iyhz.onrender.com';
   const API_BASE = useMemo(() => {
-    if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
-    if (
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ) {
-      return 'http://localhost:8000';
+    // Check for explicit environment variable (set at build time)
+    if (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL !== 'undefined') {
+      return process.env.REACT_APP_API_URL;
     }
+    
+    // Check if running locally
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:8000';
+      }
+    }
+    
+    // Always default to production API
     return DEFAULT_PROD_API;
   }, []);
+  
+  // Log API base for debugging
+  useEffect(() => {
+    console.log('🔧 Podcasts page API_BASE:', API_BASE);
+  }, [API_BASE]);
 
   // Normalize backend category values to the fixed originals
   const CATEGORY_ALIASES = {
@@ -116,18 +128,18 @@ const Podcasts = () => {
         setLoading(true);
         console.log('🔍 Loading podcasts from API...', API_BASE);
         const data = await podcastService.getPodcasts();
-        console.log('✅ Podcasts loaded:', data.length, 'items');
-        console.log('📊 Sample podcast:', data[0] || 'No podcasts');
+        console.log(' Podcasts loaded:', data.length, 'items');
+        console.log(' Sample podcast:', data[0] || 'No podcasts');
         
         // Ensure data is an array
         if (!Array.isArray(data)) {
-          console.error('❌ Podcasts data is not an array:', data);
+          console.error(' Podcasts data is not an array:', data);
           setPodcasts([]);
           return;
         }
         
         if (data.length === 0) {
-          console.warn('⚠️ No podcasts returned from API');
+          console.warn('warning No podcasts returned from API');
           setPodcasts([]);
           return;
         }
