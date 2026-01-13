@@ -6,12 +6,28 @@
 // - localhost/127.0.0.1: local dev
 // - otherwise: deployed Render API
 const DEFAULT_PROD_API = 'https://fog-backend-iyhz.onrender.com';
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL ||
-  (typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-      ? 'http://localhost:8000'
-      : DEFAULT_PROD_API);
+const API_BASE_URL = (() => {
+  // Check for explicit environment variable (set at build time)
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Check if running locally
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+  }
+  
+  // Default to production API
+  return DEFAULT_PROD_API;
+})();
+
+// Log API URL for debugging (only in development)
+if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+  console.log('🔧 API_BASE_URL:', API_BASE_URL);
+}
 
 // Helper function to get auth token
 const getAuthToken = async () => {
@@ -42,12 +58,21 @@ const apiRequest = async (endpoint, options = {}) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Try primary API URL first
-  let apiUrl = API_BASE_URL;
+  // Ensure we have a valid API URL
+  let apiUrl = API_BASE_URL || DEFAULT_PROD_API;
   const fallbackUrl = DEFAULT_PROD_API;
   
+  // Ensure endpoint starts with /
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const fullUrl = `${apiUrl}${normalizedEndpoint}`;
+  
+  // Log for debugging
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    console.log('🌐 API Request:', fullUrl);
+  }
+  
   try {
-    let response = await fetch(`${apiUrl}${endpoint}`, {
+    let response = await fetch(fullUrl, {
       ...options,
       headers,
     });
@@ -58,7 +83,8 @@ const apiRequest = async (endpoint, options = {}) => {
         process.env.REACT_APP_API_URL) {
       console.warn(`Primary API (${apiUrl}) returned ${response.status}, trying fallback...`);
       apiUrl = fallbackUrl;
-      response = await fetch(`${apiUrl}${endpoint}`, {
+      const fallbackFullUrl = `${apiUrl}${normalizedEndpoint}`;
+      response = await fetch(fallbackFullUrl, {
         ...options,
         headers,
       });
@@ -85,7 +111,8 @@ const apiRequest = async (endpoint, options = {}) => {
         process.env.REACT_APP_API_URL) {
       console.warn('Primary API failed, trying fallback URL...');
       try {
-        const fallbackResponse = await fetch(`${fallbackUrl}${endpoint}`, {
+        const fallbackFullUrl = `${fallbackUrl}${normalizedEndpoint}`;
+        const fallbackResponse = await fetch(fallbackFullUrl, {
           ...options,
           headers,
         });
