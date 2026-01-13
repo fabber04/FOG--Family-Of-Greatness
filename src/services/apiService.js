@@ -6,10 +6,15 @@
 // - localhost/127.0.0.1: local dev
 // - otherwise: deployed Render API
 const DEFAULT_PROD_API = 'https://fog-backend-iyhz.onrender.com';
-const API_BASE_URL = (() => {
+
+// Get API URL - React env vars are replaced at build time
+// If REACT_APP_API_URL is not set, it becomes undefined, so we check for that
+const getApiBaseUrl = () => {
   // Check for explicit environment variable (set at build time)
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
+  // In production builds, undefined env vars become the string "undefined"
+  const envApiUrl = process.env.REACT_APP_API_URL;
+  if (envApiUrl && envApiUrl !== 'undefined' && envApiUrl.trim() !== '') {
+    return envApiUrl;
   }
   
   // Check if running locally
@@ -20,9 +25,11 @@ const API_BASE_URL = (() => {
     }
   }
   
-  // Default to production API
+  // Always default to production API
   return DEFAULT_PROD_API;
-})();
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Log API URL for debugging (always log in production to help diagnose issues)
 if (typeof window !== 'undefined') {
