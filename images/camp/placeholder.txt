@@ -1,0 +1,10 @@
+This folder is ready for your camp photos!
+
+📸 Add your camp photos here with these names:
+- worship-session.jpg
+- team-building.jpg  
+- campfire-fellowship.jpg
+- bible-study.jpg
+- adventure-activities.jpg
+
+Or use any names you prefer, just remember to update the Camp.js file!
