@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response, FileResponse
+import os
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
@@ -319,6 +320,106 @@ def extract_drive_file_id(url: str) -> Optional[str]:
     
     return None
 
+def get_allowed_origin(request: Request) -> str:
+    """Get allowed origin for CORS headers, matching CORS middleware configuration."""
+    origin = request.headers.get("origin")
+    if not origin:
+        return "*"
+    
+    # Get allowed origins from environment (same logic as main.py)
+    cors_origins = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else []
+    default_origins = [
+        "http://localhost:3000", 
+        "http://localhost:3001",
+        "http://localhost:3002",
+        "https://fabber04.github.io",
+        "https://familyofgreatness.com",
+        "https://www.familyofgreatness.com"
+    ]
+    allow_origins = default_origins + [origin.strip() for origin in cors_origins if origin.strip()]
+    
+    # If origin is in allowed list, return it; otherwise return first allowed origin or "*"
+    if origin in allow_origins:
+        return origin
+    
+    # For security, if origin not in list, return first allowed origin (or "*" if list is empty)
+    # In production, CORS middleware will handle validation, but for streaming we need explicit header
+    return origin if allow_origins else "*"
+
+@router.options("/{podcast_id}/stream")
+async def stream_podcast_audio_options(
+    podcast_id: int,
+    request: Request
+):
+    """Handle preflight OPTIONS request for audio streaming."""
+    origin = get_allowed_origin(request)
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+            "Access-Control-Allow-Headers": "Range, Content-Type, Accept, Authorization",
+            "Access-Control-Max-Age": "3600",
+        }
+    )
+
+@router.get("/{podcast_id}/test-audio")
+async def test_podcast_audio(
+    podcast_id: int,
+    db: Session = Depends(get_db)
+):
+    """Test endpoint to check audio file info without streaming."""
+    podcast = db.query(Podcast).filter(Podcast.id == podcast_id).first()
+    if not podcast:
+        raise HTTPException(status_code=404, detail="Podcast not found")
+    
+    if not podcast.audio_url:
+        return {"error": "No audio URL", "podcast_id": podcast_id}
+    
+    # Normalize URL
+    audio_url_path = podcast.audio_url
+    if "://" in audio_url_path:
+        from urllib.parse import urlparse
+        parsed = urlparse(audio_url_path)
+        audio_url_path = parsed.path
+    
+    is_local = audio_url_path.startswith("/storage/") or audio_url_path.startswith("/uploads/")
+    
+    result = {
+        "podcast_id": podcast_id,
+        "title": podcast.title,
+        "audio_url": podcast.audio_url,
+        "normalized_path": audio_url_path,
+        "is_local_file": is_local,
+    }
+    
+    if is_local:
+        if audio_url_path.startswith("/storage/"):
+            from file_server import STORAGE_DIR
+            relative_path = audio_url_path.replace("/storage/", "")
+            file_path = str(STORAGE_DIR / relative_path)
+        else:
+            file_path = audio_url_path.lstrip("/")
+        
+        result["file_path"] = file_path
+        result["file_exists"] = os.path.exists(file_path)
+        
+        if os.path.exists(file_path):
+            result["file_size"] = os.path.getsize(file_path)
+            file_ext = os.path.splitext(file_path)[1].lower()
+            result["file_extension"] = file_ext
+            media_type_map = {
+                ".mp3": "audio/mpeg",
+                ".m4a": "audio/mp4",
+                ".mp4": "audio/mp4",
+                ".wav": "audio/wav",
+                ".ogg": "audio/ogg",
+                ".aac": "audio/aac"
+            }
+            result["detected_mime_type"] = media_type_map.get(file_ext, "audio/mpeg")
+    
+    return result
+
 @router.get("/{podcast_id}/stream")
 async def stream_podcast_audio(
     podcast_id: int,
@@ -333,69 +434,185 @@ async def stream_podcast_audio(
     # Get podcast
     podcast = db.query(Podcast).filter(Podcast.id == podcast_id).first()
     if not podcast:
+        print(f"❌ Stream request: Podcast {podcast_id} not found")
         raise HTTPException(status_code=404, detail="Podcast not found")
     
     if not podcast.audio_url:
+        print(f"❌ Stream request: Podcast {podcast_id} has no audio_url")
         raise HTTPException(status_code=404, detail="Audio URL not available")
     
+    print(f"🎵 Stream request for podcast {podcast_id}: {podcast.title}")
+    print(f"   Audio URL: {podcast.audio_url}")
+    
+    # Normalize the audio URL - extract path if it's a full URL
+    audio_url_path = podcast.audio_url
+    if "://" in audio_url_path:
+        # Extract path from full URL (e.g., https://example.com/storage/... -> /storage/...)
+        from urllib.parse import urlparse
+        parsed = urlparse(audio_url_path)
+        audio_url_path = parsed.path
+        print(f"   Extracted path from full URL: {audio_url_path}")
+    
     # Check if it's a local file (starts with /uploads/ or /storage/)
-    if podcast.audio_url.startswith("/uploads/podcasts/audio/") or podcast.audio_url.startswith("/storage/podcasts/audio/"):
+    # Also handle URLs that might be full URLs but point to our server
+    is_local_file = (
+        audio_url_path.startswith("/uploads/podcasts/audio/") or 
+        audio_url_path.startswith("/storage/podcasts/audio/") or
+        audio_url_path.startswith("/uploads/") or
+        audio_url_path.startswith("/storage/")
+    )
+    
+    if is_local_file:
         # Serve local file
-        if podcast.audio_url.startswith("/storage/"):
+        if audio_url_path.startswith("/storage/"):
             # New storage location
             from file_server import STORAGE_DIR
-            relative_path = podcast.audio_url.replace("/storage/", "")
+            relative_path = audio_url_path.replace("/storage/", "")
             file_path = str(STORAGE_DIR / relative_path)
         else:
             # Legacy uploads location
-            file_path = podcast.audio_url.lstrip("/")
+            file_path = audio_url_path.lstrip("/")
+        
+        print(f"   Local file path: {file_path}")
+        print(f"   File exists: {os.path.exists(file_path)}")
         
         if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Audio file not found on server")
+            print(f"❌ Audio file not found: {file_path}")
+            raise HTTPException(status_code=404, detail=f"Audio file not found on server: {file_path}")
+        
+        # Get file size
+        file_size = os.path.getsize(file_path)
         
         # Determine media type from file extension
+        # Use standard MIME types that browsers recognize
         file_ext = os.path.splitext(file_path)[1].lower()
         media_type_map = {
             ".mp3": "audio/mpeg",
-            ".m4a": "audio/mp4",
+            ".m4a": "audio/mp4",  # m4a files use audio/mp4 MIME type
             ".mp4": "audio/mp4",
             ".wav": "audio/wav",
             ".ogg": "audio/ogg",
             ".aac": "audio/aac"
         }
         media_type = media_type_map.get(file_ext, "audio/mpeg")
+        print(f"   Detected file extension: {file_ext}")
+        print(f"   Using media type: {media_type}")
         
+        # Handle Range requests for audio streaming (required for browser playback)
+        range_header = request.headers.get("range")
+        
+        if range_header:
+            # Parse range header (e.g., "bytes=0-1023")
+            match = re.match(r"bytes=(\d+)-(\d*)", range_header)
+            if match:
+                start = int(match.group(1))
+                end = int(match.group(2)) if match.group(2) else file_size - 1
+                
+                # Validate range
+                if start >= file_size or end >= file_size or start > end:
+                    raise HTTPException(
+                        status_code=416,
+                        detail="Range Not Satisfiable",
+                        headers={"Content-Range": f"bytes */{file_size}"}
+                    )
+                
+                content_length = end - start + 1
+                
+                async def generate_range():
+                    """Stream audio data for range request."""
+                    with open(file_path, "rb") as f:
+                        f.seek(start)
+                        remaining = content_length
+                        while remaining > 0:
+                            chunk_size = min(8192, remaining)
+                            chunk = f.read(chunk_size)
+                            if not chunk:
+                                break
+                            yield chunk
+                            remaining -= len(chunk)
+                
+                # Increment plays count only on first request (start == 0)
+                if start == 0:
+                    podcast.plays += 1
+                    db.commit()
+                
+                # Get allowed origin for CORS
+                origin = get_allowed_origin(request)
+                
+                headers = {
+                    "Content-Type": media_type,  # Explicitly set Content-Type
+                    "Content-Range": f"bytes {start}-{end}/{file_size}",
+                    "Accept-Ranges": "bytes",
+                    "Content-Length": str(content_length),
+                    "Content-Disposition": "inline",
+                    "Cache-Control": "public, max-age=3600",
+                    "Access-Control-Allow-Origin": origin,
+                    "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                    "Access-Control-Allow-Headers": "Range, Content-Type, Accept",
+                    "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges",
+                }
+                print(f"   Streaming range {start}-{end} of {file_size} bytes with Content-Type: {media_type}")
+                return StreamingResponse(
+                    generate_range(),
+                    status_code=206,  # Partial Content
+                    media_type=media_type,
+                    headers=headers
+                )
+        
+        # For full file requests, use FileResponse which handles range requests automatically
+        # This is more reliable for browser audio playback
         # Increment plays count
         podcast.plays += 1
         db.commit()
         
-        async def generate_local():
-            """Stream audio data from local file."""
-            with open(file_path, "rb") as f:
-                while True:
-                    chunk = f.read(8192)
-                    if not chunk:
-                        break
-                    yield chunk
+        # Get allowed origin for CORS
+        origin = get_allowed_origin(request)
         
-        return StreamingResponse(
-            generate_local(),
+        # Use FileResponse for better browser compatibility
+        # FileResponse automatically handles range requests and sets correct headers
+        print(f"   Serving file ({file_size} bytes) with Content-Type: {media_type}")
+        response = FileResponse(
+            path=file_path,
             media_type=media_type,
             headers={
                 "Content-Disposition": "inline",
                 "Accept-Ranges": "bytes",
                 "Cache-Control": "public, max-age=3600",
-                "X-Content-Type-Options": "nosniff",
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                "Access-Control-Allow-Headers": "Range, Content-Type, Accept",
+                "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges",
             }
         )
+        return response
     
     # Otherwise, it's a Google Drive link - proxy it
+    print(f"   Treating as Google Drive link")
     file_id = extract_drive_file_id(podcast.audio_url)
     if not file_id:
-        raise HTTPException(status_code=400, detail="Invalid audio URL")
+        print(f"❌ Could not extract file ID from URL: {podcast.audio_url}")
+        raise HTTPException(status_code=400, detail=f"Invalid audio URL format: {podcast.audio_url}")
+    
+    print(f"   Extracted Google Drive file ID: {file_id}")
     
     # Convert to streaming URL
     stream_url = f"https://drive.google.com/uc?export=open&id={file_id}"
+    
+    # Try to detect file type from the original URL
+    # Check if we can infer from the URL
+    detected_media_type = None
+    original_url_lower = podcast.audio_url.lower()
+    
+    if ".m4a" in original_url_lower:
+        detected_media_type = "audio/mp4"
+    elif ".mp3" in original_url_lower:
+        detected_media_type = "audio/mpeg"
+    elif ".wav" in original_url_lower:
+        detected_media_type = "audio/wav"
+    elif ".ogg" in original_url_lower:
+        detected_media_type = "audio/ogg"
+    elif ".aac" in original_url_lower:
+        detected_media_type = "audio/aac"
     
     # Increment plays count
     podcast.plays += 1
@@ -412,30 +629,56 @@ async def stream_podcast_audio(
                             detail="Failed to fetch audio from Google Drive"
                         )
                     
+                    # Try to get Content-Type from Google Drive response
+                    content_type_from_drive = response.headers.get("Content-Type", "")
+                    if content_type_from_drive:
+                        print(f"   Google Drive Content-Type: {content_type_from_drive}")
+                    
                     async for chunk in response.aiter_bytes(chunk_size=8192):
                         yield chunk
             except httpx.RequestError as e:
                 raise HTTPException(status_code=500, detail=f"Error streaming audio: {str(e)}")
     
-    # Get content type from request or default to audio/mpeg
-    accept_header = request.headers.get("accept", "")
-    media_type = "audio/mpeg"
-    if "audio/mp3" in accept_header or "audio/mpeg" in accept_header:
-        media_type = "audio/mpeg"
+    # Determine media type: prefer detected type, then accept header, finally default
+    accept_header = request.headers.get("accept", "").lower()
+    media_type = None
+    
+    # First, use detected type from URL if available
+    if detected_media_type:
+        media_type = detected_media_type
+        print(f"   Using detected media type from URL: {media_type}")
+    # Then check accept header
     elif "audio/mp4" in accept_header or "audio/m4a" in accept_header:
         media_type = "audio/mp4"
+    elif "audio/mp3" in accept_header or "audio/mpeg" in accept_header:
+        media_type = "audio/mpeg"
     elif "audio/ogg" in accept_header:
         media_type = "audio/ogg"
     elif "audio/wav" in accept_header:
         media_type = "audio/wav"
+    else:
+        # Default: assume m4a files are common, use mp4, otherwise mp3
+        media_type = "audio/mp4" if ".m4a" in original_url_lower else "audio/mpeg"
     
+    print(f"   Final media type for Google Drive: {media_type}")
+    
+    # Get allowed origin for CORS
+    origin = get_allowed_origin(request)
+    
+    headers = {
+        "Content-Type": media_type,  # Explicitly set Content-Type
+        "Content-Disposition": "inline",
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=3600",
+        "X-Content-Type-Options": "nosniff",
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+        "Access-Control-Allow-Headers": "Range, Content-Type, Accept",
+        "Access-Control-Expose-Headers": "Content-Range, Content-Length, Accept-Ranges",
+    }
+    print(f"   Streaming Google Drive file with Content-Type: {media_type}")
     return StreamingResponse(
         generate(),
         media_type=media_type,
-        headers={
-            "Content-Disposition": "inline",
-            "Accept-Ranges": "bytes",
-            "Cache-Control": "public, max-age=3600",
-            "X-Content-Type-Options": "nosniff",
-        }
+        headers=headers
     )

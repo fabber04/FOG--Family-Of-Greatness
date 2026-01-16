@@ -19,17 +19,31 @@ const AudioPlayer = ({ audioUrl, podcastId, podcastTitle, podcastCover, onClose 
 
   // Get playable URL - handle local files and Google Drive links
   const getPlayableUrl = () => {
-    if (!audioUrl) return null;
+    if (!audioUrl || audioUrl === '#' || audioUrl === 'null' || audioUrl === 'undefined') {
+      console.warn('AudioPlayer: No audio URL provided');
+      return null;
+    }
     
-    // If it's a local storage URL (/storage/... or /uploads/...), use direct URL
-    // Direct URLs work better for audio playback in browsers
+    console.log('AudioPlayer: Processing audio URL:', audioUrl);
+    
+    // If it's a local storage URL (/storage/... or /uploads/...), prefer streaming endpoint for tracking
     if (audioUrl.includes('/storage/') || audioUrl.includes('/uploads/')) {
+      // If we have a podcastId, use streaming endpoint for play count tracking
+      if (podcastId) {
+        const streamUrl = `${API_BASE_URL}/api/podcasts/${podcastId}/stream`;
+        console.log('AudioPlayer: Using stream endpoint for local file:', streamUrl);
+        return streamUrl;
+      }
+      
       // Already a full URL
-      if (audioUrl.startsWith('http')) {
+      if (audioUrl.startsWith('http://') || audioUrl.startsWith('https://')) {
+        console.log('AudioPlayer: Using full URL:', audioUrl);
         return audioUrl;
       }
       // Convert relative URL to absolute
-      return `${API_BASE_URL}${audioUrl}`;
+      const fullUrl = `${API_BASE_URL}${audioUrl}`;
+      console.log('AudioPlayer: Converted to full URL:', fullUrl);
+      return fullUrl;
     }
     
     // For Google Drive links, use streaming endpoint if podcastId available (for play tracking)
@@ -37,23 +51,38 @@ const AudioPlayer = ({ audioUrl, podcastId, podcastTitle, podcastCover, onClose 
     if (audioUrl.includes('drive.google.com')) {
       if (podcastId) {
         // Use streaming endpoint for play count tracking
-        return `${API_BASE_URL}/api/podcasts/${podcastId}/stream`;
+        const streamUrl = `${API_BASE_URL}/api/podcasts/${podcastId}/stream`;
+        console.log('AudioPlayer: Using stream endpoint:', streamUrl);
+        return streamUrl;
       }
       
       // Convert Google Drive share link to direct link
       if (audioUrl.includes('drive.google.com/uc?export=open')) {
+        console.log('AudioPlayer: Using direct Google Drive URL:', audioUrl);
         return audioUrl;
       }
       
       // Extract file ID and convert
       const match = audioUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || audioUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
       if (match) {
-        return `https://drive.google.com/uc?export=open&id=${match[1]}`;
+        const driveUrl = `https://drive.google.com/uc?export=open&id=${match[1]}`;
+        console.log('AudioPlayer: Converted Google Drive URL:', driveUrl);
+        return driveUrl;
       }
     }
     
-    // Return as-is if it's already a direct URL
-    return audioUrl;
+    // If it's already a full URL, return as-is
+    if (audioUrl.startsWith('http://') || audioUrl.startsWith('https://')) {
+      console.log('AudioPlayer: Using provided full URL:', audioUrl);
+      return audioUrl;
+    }
+    
+    // Last resort: try to construct URL
+    const constructedUrl = audioUrl.startsWith('/') 
+      ? `${API_BASE_URL}${audioUrl}`
+      : `${API_BASE_URL}/${audioUrl}`;
+    console.log('AudioPlayer: Constructed URL:', constructedUrl);
+    return constructedUrl;
   };
 
   const playableUrl = getPlayableUrl();
@@ -61,15 +90,42 @@ const AudioPlayer = ({ audioUrl, podcastId, podcastTitle, podcastCover, onClose 
   // Update audio source when URL changes
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !playableUrl) return;
+    if (!audio) {
+      console.warn('AudioPlayer: Audio element not found');
+      return;
+    }
+    
+    if (!playableUrl) {
+      console.warn('AudioPlayer: No playable URL available');
+      return;
+    }
+    
+    console.log('AudioPlayer: Setting audio source to:', playableUrl);
     
     // Reset state when URL changes
     setCurrentTime(0);
     setDuration(0);
     setIsPlaying(false);
     
-    // Load new source
+    // Set the source and load
+    audio.src = playableUrl;
     audio.load();
+    
+    // Add error handler for debugging
+    const handleLoadError = (e) => {
+      console.error('AudioPlayer: Error loading audio:', {
+        error: e,
+        src: audio.src,
+        networkState: audio.networkState,
+        readyState: audio.readyState
+      });
+    };
+    
+    audio.addEventListener('error', handleLoadError);
+    
+    return () => {
+      audio.removeEventListener('error', handleLoadError);
+    };
   }, [playableUrl]);
 
   useEffect(() => {
@@ -80,8 +136,28 @@ const AudioPlayer = ({ audioUrl, podcastId, podcastTitle, podcastCover, onClose 
     const updateDuration = () => setDuration(audio.duration);
     const handleEnded = () => setIsPlaying(false);
     const handleError = (e) => {
-      console.error('Audio error:', e);
+      const audio = e.target;
+      console.error('AudioPlayer: Playback error:', {
+        error: e,
+        src: audio.src,
+        networkState: audio.networkState,
+        readyState: audio.readyState,
+        errorCode: audio.error ? audio.error.code : 'unknown',
+        errorMessage: audio.error ? audio.error.message : 'unknown'
+      });
       setIsPlaying(false);
+      
+      // Show user-friendly error message
+      if (audio.error) {
+        const errorMessages = {
+          1: 'Media aborted',
+          2: 'Network error - please check your connection',
+          3: 'Decode error - audio file may be corrupted',
+          4: 'Source not supported - audio format may not be supported'
+        };
+        const errorMsg = errorMessages[audio.error.code] || 'Unknown playback error';
+        alert(`Unable to play audio: ${errorMsg}`);
+      }
     };
 
     audio.addEventListener('timeupdate', updateTime);
@@ -212,8 +288,37 @@ const AudioPlayer = ({ audioUrl, podcastId, podcastTitle, podcastCover, onClose 
         src={playableUrl} 
         preload="metadata"
         crossOrigin="anonymous"
+        playsInline
         onError={(e) => {
-          console.error('Audio playback error:', e);
+          const audio = e.target;
+          console.error('Audio playback error:', {
+            error: e,
+            src: audio.src,
+            networkState: audio.networkState,
+            readyState: audio.readyState,
+            errorCode: audio.error ? audio.error.code : 'unknown',
+            errorMessage: audio.error ? audio.error.message : 'unknown'
+          });
+        }}
+        onLoadedMetadata={() => {
+          const audio = audioRef.current;
+          console.log('Audio metadata loaded successfully', {
+            duration: audio?.duration,
+            readyState: audio?.readyState,
+            networkState: audio?.networkState
+          });
+        }}
+        onCanPlay={() => {
+          console.log('Audio can play');
+        }}
+        onCanPlayThrough={() => {
+          console.log('Audio can play through');
+        }}
+        onLoadStart={() => {
+          console.log('Audio load started:', playableUrl);
+        }}
+        onStalled={() => {
+          console.warn('Audio stalled - buffering may be slow');
         }}
       />
       

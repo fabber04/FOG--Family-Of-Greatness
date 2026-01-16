@@ -54,6 +54,7 @@ const Podcasts = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null); // Track selected category for episode list view
   const [lastPlayedPodcastId, setLastPlayedPodcastId] = useState(null); // Track last played podcast
+  const [apiError, setApiError] = useState(null); // Track API connection errors
 
   // Use the same API base URL logic as apiService.js
   const DEFAULT_PROD_API = 'https://fog-backend-iyhz.onrender.com';
@@ -86,13 +87,51 @@ const Podcasts = () => {
   const CATEGORY_ALIASES = {
     'wisdom-for-teenagers': 'teens',
     'wisdom for teenagers': 'teens',
+    'wisdom-for-ladies': 'wisdom-for-ladies',
+    'beyond-dating-game': 'beyond-dating-game',
+    'spiritual-development': 'spiritual-development',
+    'relationships': 'relationships',
+    'personal-development': 'personal-development',
+    'wisdom-keys': 'wisdom-keys',
+    'university-students': 'university-students',
   };
-  const normalizeCategory = (value = '') => CATEGORY_ALIASES[value] || value;
+  const normalizeCategory = (value = '') => {
+    if (!value) return value;
+    const normalized = CATEGORY_ALIASES[value.toLowerCase()] || value.toLowerCase();
+    console.log(`🔄 Normalizing category: "${value}" → "${normalized}"`);
+    return normalized;
+  };
 
-  // Extract episode number from title (e.g., "Ep 01", "Episode 3", "Esp.4")
+  // Map categories to local podcast cover images (matching filenames exactly)
+  // Using absolute paths from public folder for proper resolution on live site
+  const getCategoryCoverImage = (category) => {
+    const categoryMap = {
+      'beyond-dating-game': '/images/podcasts/Beyond the dating Game.jpeg',
+      'wisdom-for-ladies': '/images/podcasts/exceptional ladies.jpeg',
+      'fog-gents': '/images/podcasts/FOG Gents.jpeg',
+      'personal-development': '/images/podcasts/Personal developments .jpeg',
+      'relationships': '/images/podcasts/wisdom for relationships .jpeg',
+      'teens': '/images/podcasts/wisdom for teenagers.jpeg',
+      'university-students': '/images/podcasts/wisdom for univeristy students.jpeg',
+      'wisdom-keys': '/images/podcasts/Wisdom keys.jpeg',
+      'spiritual-development': '/images/podcasts/Wisdom keys.jpeg', // Use Wisdom keys as default for spiritual
+    };
+    return categoryMap[category] || '/images/podcasts/Wisdom keys.jpeg'; // Default fallback
+  };
+
+  // Extract episode number from title (e.g., "Episode 01", "Episode 3", "Ep 1", "Esp.4")
   const getEpisodeNumber = (title = '') => {
+    // Try to match "Episode 01", "Episode 1", "Ep 01", etc.
     const match = title.match(/(?:ep|eps|esp|episode)[\s.-]*#?\s*(\d+)/i);
-    return match ? parseInt(match[1], 10) : null;
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+    // Also try to match at the start of title (e.g., "Episode 01: Title")
+    const startMatch = title.match(/^episode\s+(\d+)/i);
+    if (startMatch) {
+      return parseInt(startMatch[1], 10);
+    }
+    return null;
   };
 
   // Sort episodes so earliest numbers (or dates) appear first
@@ -151,10 +190,32 @@ const Podcasts = () => {
           const normalizedCategory = normalizeCategory(podcast.category);
           // Helper to build full URL
           const buildUrl = (url) => {
-            if (!url || url === '#') return '#';
-            if (url.startsWith('http')) return url;
-            return `${API_BASE}${url}`;
+            if (!url || url === '#' || url === 'null' || url === 'undefined') return null;
+            // If already a full URL, return as-is
+            if (url.startsWith('http://') || url.startsWith('https://')) return url;
+            // If relative URL, make it absolute
+            if (url.startsWith('/')) {
+              return `${API_BASE}${url}`;
+            }
+            // If it's a Google Drive link, return as-is
+            if (url.includes('drive.google.com')) return url;
+            // Otherwise, assume it's a relative path
+            return `${API_BASE}/${url}`;
           };
+          
+          // Get cover image - use API cover if available, otherwise use category default
+          let coverImage = buildUrl(podcast.cover);
+          if (!coverImage || coverImage === '#') {
+            coverImage = getCategoryCoverImage(normalizedCategory);
+          }
+          
+          // Build audio URL - log for debugging
+          const audioUrl = buildUrl(podcast.audio_url);
+          if (!audioUrl) {
+            console.warn(`⚠️ Podcast "${podcast.title}" (ID: ${podcast.id}) has no audio_url:`, podcast.audio_url);
+          } else {
+            console.log(`✅ Podcast "${podcast.title}" (ID: ${podcast.id}) audio URL:`, audioUrl);
+          }
           
           return {
             id: podcast.id,
@@ -163,7 +224,7 @@ const Podcasts = () => {
             type: podcast.type,
             category: normalizedCategory,
             description: podcast.description,
-            cover: buildUrl(podcast.cover),
+            cover: coverImage,
             duration: podcast.duration || 'N/A',
             publishDate: podcast.publish_date ? podcast.publish_date.split('T')[0] : new Date().toISOString().split('T')[0],
             isLive: podcast.is_live || false,
@@ -171,7 +232,7 @@ const Podcasts = () => {
             rating: podcast.rating || 0,
             plays: podcast.plays || 0,
             tags: podcast.tags ? (typeof podcast.tags === 'string' ? podcast.tags.split(',').map(t => t.trim()) : podcast.tags) : [],
-            audioUrl: buildUrl(podcast.audio_url),
+            audioUrl: audioUrl,
             transcript: podcast.transcript || ''
           };
         });
@@ -187,6 +248,15 @@ const Podcasts = () => {
           stack: error.stack,
           API_BASE
         });
+        
+        // Set error message for user
+        const errorMessage = error.message || 'Unknown error';
+        if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('Cannot connect')) {
+          setApiError(`Cannot connect to backend API at ${API_BASE}. Please check if the server is running.`);
+        } else {
+          setApiError(`Error loading podcasts: ${errorMessage}`);
+        }
+        
         // Fallback to empty array on error
         setPodcasts([]);
       } finally {
@@ -379,29 +449,31 @@ const Podcasts = () => {
   const getCategoryInfo = () => {
     const categoryMap = {};
     
-    // Initialize all original categories
+    // Initialize all original categories with default covers
     ORIGINAL_CATEGORIES.forEach(cat => {
       categoryMap[cat.id] = {
         id: cat.id,
         name: cat.name,
         podcasts: [],
-        cover: null
+        cover: getCategoryCoverImage(cat.id) // Use local image as default
       };
     });
     
     // Only add podcasts that belong to original categories (after normalization)
     podcasts.forEach(podcast => {
-      if (!podcast.category) return;
+      if (!podcast.category) {
+        console.warn(`⚠️ Podcast "${podcast.title}" (ID: ${podcast.id}) has no category`);
+        return;
+      }
       const normalized = normalizeCategory(podcast.category);
       
       if (categoryMap[normalized]) {
         const withNormalized = { ...podcast, category: normalized };
         categoryMap[normalized].podcasts.push(withNormalized);
-        
-        // Use first podcast's cover as category cover
-        if (!categoryMap[normalized].cover && podcast.cover) {
-          categoryMap[normalized].cover = podcast.cover;
-        }
+        console.log(`✅ Added podcast "${podcast.title}" to category "${normalized}"`);
+      } else {
+        console.warn(`⚠️ Podcast "${podcast.title}" (ID: ${podcast.id}) category "${podcast.category}" (normalized: "${normalized}") doesn't match any original category`);
+        console.warn(`   Available categories: ${Object.keys(categoryMap).join(', ')}`);
       }
     });
     
@@ -424,6 +496,12 @@ const Podcasts = () => {
         name: c.name,
         count: c.podcasts.length
       })));
+      console.log('📊 Total podcasts loaded:', podcasts.length);
+      console.log('📋 Podcast categories found:', [...new Set(podcasts.map(p => p.category))]);
+      console.log('🔍 Category mapping:', categories.map(c => ({
+        id: c.id,
+        podcasts: c.podcasts.map(p => ({ id: p.id, title: p.title, category: p.category }))
+      })));
     }
   }, [podcasts, categories]);
   
@@ -444,12 +522,13 @@ const Podcasts = () => {
       setLastPlayedPodcastId(podcast.id);
     }
     
-    // If podcast has a valid audio URL (not '#'), use the audio player
-    if (podcast.audioUrl && podcast.audioUrl !== '#') {
-      setPlayingPodcast(podcast);
-    } else {
-      // Show alert if no audio URL
-      alert(`No audio available for: ${podcast.title}`);
+    // Always set playing podcast - AudioPlayer will handle invalid URLs gracefully
+    console.log('Setting playing podcast:', podcast.title, 'audioUrl:', podcast.audioUrl);
+    setPlayingPodcast(podcast);
+    
+    // Show warning if no audio URL, but still set the podcast so player shows
+    if (!podcast.audioUrl || podcast.audioUrl === '#' || podcast.audioUrl === 'null' || podcast.audioUrl === 'undefined') {
+      console.warn('No audio URL available for podcast:', podcast.title, 'audioUrl:', podcast.audioUrl);
     }
   };
 
@@ -602,6 +681,21 @@ const Podcasts = () => {
               <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
               <span className="ml-3 text-gray-600">Loading episodes...</span>
             </div>
+          ) : apiError ? (
+            <div className="text-center py-12">
+              <Headphones className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Unable to load episodes due to API connection error</p>
+              <p className="text-sm text-gray-500 mt-2">Please check the backend server status</p>
+              <button
+                onClick={() => {
+                  setApiError(null);
+                  window.location.reload();
+                }}
+                className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                Retry Connection
+              </button>
+            </div>
           ) : categoryEpisodes.length === 0 ? (
             <div className="text-center py-12">
               <Headphones className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -705,6 +799,32 @@ const Podcasts = () => {
           </div>
         )}
 
+        {/* API Error Message */}
+        {apiError && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-red-800">API Connection Error</h3>
+                <p className="mt-1 text-sm text-red-700">{apiError}</p>
+                <button
+                  onClick={() => {
+                    setApiError(null);
+                    window.location.reload();
+                  }}
+                  className="mt-2 text-sm font-medium text-red-800 hover:text-red-900 underline"
+                >
+                  Retry Connection
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Category Covers Grid */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Podcast Categories</h2>
@@ -712,6 +832,12 @@ const Podcasts = () => {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
               <span className="ml-3 text-gray-600">Loading categories...</span>
+            </div>
+          ) : apiError ? (
+            <div className="text-center py-12">
+              <Headphones className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Unable to load podcasts due to API connection error</p>
+              <p className="text-sm text-gray-500 mt-2">Please check the backend server status</p>
             </div>
           ) : categories.filter(c => c.podcasts.length > 0).length === 0 ? (
             <div className="text-center py-12">
@@ -756,7 +882,8 @@ const Podcasts = () => {
                           alt={category.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                           onError={(e) => {
-                            e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=center';
+                            // Fallback to category default image
+                            e.target.src = getCategoryCoverImage(category.id);
                           }}
                         />
                       ) : (
@@ -810,7 +937,8 @@ const Podcasts = () => {
                       alt={selectedPodcast.title}
                       className="w-full rounded-lg bg-gray-100"
                       onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=center';
+                        // Fallback to category default image
+                        e.target.src = getCategoryCoverImage(selectedPodcast.category);
                       }}
                     />
                   </div>
